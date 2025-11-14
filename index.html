@@ -361,7 +361,7 @@
                 </div>
             </div>
 
-            <!-- KYC Page (UPDATED) -->
+            <!-- KYC Page -->
             <div class="page" id="kyc-content">
                 <div class="page-header"><h1>KYC Verification Codes</h1></div>
                 <div class="card">
@@ -543,7 +543,7 @@
     async function loadAllUsers() {
         const usersTableBody = document.querySelector('#users-table tbody');
         usersTableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Loading users...</td></tr>';
-        const snapshot = await db.collection('users').get();
+        const snapshot = await db.collection('users').orderBy('name').get();
         allUsersCache = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         renderUsersTable(allUsersCache);
     }
@@ -623,23 +623,47 @@
         e.preventDefault();
         const amount = parseFloat(document.getElementById('redeem-amount').value);
         const password = document.getElementById('redeem-password').value;
-        const expiryDate = document.getElementById('redeem-expiry').value;
+        const expiryDateString = document.getElementById('redeem-expiry').value; // যেমন: "2025-11-20"
+        
+        if (!expiryDateString) {
+            alert("Please select an expiry date.");
+            return;
+        }
+        
+        // ===== গুরুত্বপূর্ণ সমাধান: তারিখটিকে দিনের শেষে সেট করা হচ্ছে =====
+        // এটি নিশ্চিত করে যে কোডটি নির্বাচিত তারিখের পুরো দিন কার্যকর থাকবে
+        const expiryDateObject = new Date(`${expiryDateString}T23:59:59`);
+
         const code = `WMT-${Math.random().toString(36).substr(2, 8).toUpperCase()}`;
-        await db.collection('redeem_codes').add({
-            code, amount, password,
-            expiryDate: firebase.firestore.Timestamp.fromDate(new Date(expiryDate)),
-            isUsed: false
-        });
-        alert(`Code generated: ${code}`);
-        redeemCodeForm.reset();
-        loadRedeemCodes();
+        
+        try {
+            await db.collection('redeem_codes').add({
+                code,
+                amount,
+                password,
+                // সংশোধিত Date অবজেক্টটি সেভ করা হচ্ছে
+                expiryDate: expiryDateObject,
+                isUsed: false,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            alert(`Code generated: ${code}`);
+            redeemCodeForm.reset();
+            loadRedeemCodes();
+        } catch (error) {
+            console.error("Error creating redeem code: ", error);
+            alert("Failed to create code. See console for details.");
+        }
     });
 
     async function loadRedeemCodes() {
         const codesTableBody = document.querySelector('#redeem-codes-table tbody');
         codesTableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Loading codes...</td></tr>';
-        const snapshot = await db.collection('redeem_codes').orderBy('expiryDate', 'desc').get();
+        const snapshot = await db.collection('redeem_codes').orderBy('createdAt', 'desc').get();
         codesTableBody.innerHTML = '';
+         if (snapshot.empty) {
+            codesTableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No redeem codes found.</td></tr>';
+            return;
+        }
         snapshot.forEach(doc => {
             const code = { id: doc.id, ...doc.data() };
             const tr = document.createElement('tr');
@@ -648,7 +672,7 @@
                 <td>$${code.amount.toFixed(2)}</td>
                 <td>${code.password}</td>
                 <td>${code.expiryDate.toDate().toLocaleDateString()}</td>
-                <td>${code.isUsed ? 'Yes' : 'No'}</td>
+                <td>${code.isUsed ? `Yes` : 'No'}</td>
                 <td><button class="btn btn-sm btn-danger" onclick="deleteRedeemCode('${code.id}')">Delete</button></td>
             `;
             codesTableBody.appendChild(tr);
@@ -663,10 +687,8 @@
         }
     }
     
-    // --- (UPDATED & CORRECTED) KYC Code Generation and Management ---
-    
+    // --- KYC Code Generation and Management ---
     document.getElementById('generate-kyc-code-btn').addEventListener('click', async () => {
-        // Generate a random 6-character alphanumeric code with prefix
         const randomPart = Math.random().toString(36).substring(2, 8).toUpperCase();
         const newCode = `WMTKYC-${randomPart}`;
         try {
@@ -677,7 +699,7 @@
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             });
             alert(`New KYC Code Generated: ${newCode}`);
-            loadKycCodes(); // Refresh the list
+            loadKycCodes();
         } catch (error) {
             console.error("Error generating KYC code: ", error);
             alert("Failed to generate code. Please try again.");
@@ -701,7 +723,6 @@
             snapshot.forEach(doc => {
                 const kycCode = { id: doc.id, ...doc.data() };
                 const tr = document.createElement('tr');
-                // Check if createdAt exists before converting to date to prevent errors
                 const creationDate = kycCode.createdAt ? kycCode.createdAt.toDate().toLocaleString() : 'Generating...';
                 tr.innerHTML = `
                     <td><strong>${kycCode.code}</strong></td>
