@@ -60,13 +60,6 @@
         .modal-close { cursor: pointer; font-size: 24px; color: var(--gray); }
         .modal .table-container { max-height: 50vh; overflow-y: auto; }
         .modal-footer { margin-top: 25px; text-align: right; border-top: 1px solid #eee; padding-top: 20px; }
-        .service-status-container { display: flex; align-items: center; justify-content: space-between; background-color: #f9f9f9; padding: 20px; border-radius: 8px; }
-        .switch { position: relative; display: inline-block; width: 60px; height: 34px; }
-        .switch input { display: none; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
-        .slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: var(--secondary); }
-        input:checked + .slider:before { transform: translateX(26px); }
         /* Badge Styles for User Type */
         .badge { padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 600; color: white; }
         .badge-user { background-color: var(--primary); }
@@ -95,7 +88,6 @@
                 <li><a href="#" class="sidebar-link" data-page="users"><i class="fas fa-users"></i> All Users</a></li>
                 <li><a href="#" class="sidebar-link" data-page="kyc"><i class="fas fa-user-check"></i> KYC Codes</a></li>
                 <li><a href="#" class="sidebar-link" data-page="redeem"><i class="fas fa-gift"></i> Redeem Codes</a></li>
-                <li><a href="#" class="sidebar-link" data-page="settings"><i class="fas fa-cog"></i> Settings</a></li>
                 <li><a href="#" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
             </ul>
         </div>
@@ -109,16 +101,13 @@
                     <div class="stat-card"><div class="stat-card-icon" style="background: var(--accent);"><i class="fas fa-user-tie"></i></div><div class="stat-card-info"><h3 id="total-agents">0</h3><p>Total Agents</p></div></div>
                     <div class="stat-card"><div class="stat-card-icon" style="background: var(--secondary);"><i class="fas fa-check-circle"></i></div><div class="stat-card-info"><h3 id="kyc-verified-users">0</h3><p>KYC Verified Users</p></div></div>
                     <div class="stat-card"><div class="stat-card-icon" style="background: #29b6f6;"><i class="fas fa-wallet"></i></div><div class="stat-card-info"><h3 id="total-user-balance">$0.00</h3><p>Total Platform Balance</p></div></div>
-                    <div class="stat-card"><div class="stat-card-icon" style="background: #7E57C2;"><i class="fas fa-hand-holding-usd"></i></div><div class="stat-card-info"><h3 id="total-send-charge">$0.00</h3><p>Total Send Money Charge</p></div></div>
+                    <div class="stat-card"><div class="stat-card-icon" style="background: #7E57C2;"><i class="fas fa-hand-holding-usd"></i></div><div class="stat-card-info"><h3 id="total-service-charge">$0.00</h3><p>Total Service Charges</p></div></div>
                 </div>
             </div>
 
             <!-- All Users Page -->
             <div class="page" id="users-content">
-                <div class="page-header">
-                    <h1>All Users</h1>
-                    <button class="btn" id="create-user-btn"><i class="fas fa-plus"></i> Create New User</button>
-                </div>
+                <div class="page-header"><h1>All Users</h1></div>
                 <div class="card">
                     <div class="form-group"><input type="text" id="user-search" class="form-control" placeholder="Search by Name, Email, or User ID..."></div>
                     <div class="table-container">
@@ -130,12 +119,11 @@
                 </div>
             </div>
 
-            <!-- KYC Page -->
+            <!-- KYC and Redeem pages remain the same -->
             <div class="page" id="kyc-content">
                  <div class="page-header"><h1>KYC Verification Codes</h1></div>
                 <div class="card">
                     <h2>Generate New KYC Code</h2>
-                    <p>Generated codes are single-use and valid for all user types.</p>
                     <button id="generate-kyc-code-btn" class="btn" style="margin-top: 15px;">Generate New Code</button>
                 </div>
                 <div class="card">
@@ -143,8 +131,6 @@
                     <div class="table-container"><table id="kyc-codes-table"><thead><tr><th>Code</th><th>Created At</th><th>Action</th></tr></thead><tbody></tbody></table></div>
                 </div>
             </div>
-
-            <!-- Redeem Codes Page -->
             <div class="page" id="redeem-content">
                 <div class="page-header"><h1>Generate Redeem Codes</h1></div>
                 <div class="card">
@@ -162,55 +148,25 @@
                 </div>
             </div>
             
-            <!-- Settings Page -->
-            <div class="page" id="settings-content">
-                <div class="page-header"><h1>Settings</h1></div>
-                <div class="card">
-                    <h2>Service Charges</h2>
-                    <form id="fees-form">
-                        <div style="margin-bottom: 25px;">
-                            <h4>Regular User Fees</h4>
-                            <div class="form-group"><label for="user-send-money-fee">Send Money Fixed Fee ($)</label><input type="number" step="0.01" id="user-send-money-fee" class="form-control" placeholder="e.g., 0.05"></div>
-                            <div class="form-group"><label for="user-money-out-fee">Money Out Percentage Fee (%)</label><input type="number" step="0.01" id="user-money-out-fee" class="form-control" placeholder="e.g., 1 for 1%"></div>
-                        </div>
-                        <hr style="margin-bottom: 25px;">
-                        <div>
-                            <h4>Merchant Fees</h4>
-                            <div class="form-group"><label for="merchant-send-money-fee">Send Money Fixed Fee ($)</label><input type="number" step="0.01" id="merchant-send-money-fee" class="form-control" placeholder="e.g., 0.08"></div>
-                            <div class="form-group"><label for="merchant-money-out-fee">Money Out Percentage Fee (%)</label><input type="number" step="0.01" id="merchant-money-out-fee" class="form-control" placeholder="e.g., 0.08 for 0.08%"></div>
-                        </div>
-                        <button type="submit" class="btn">Save All Charges</button>
-                    </form>
-                </div>
-                <div class="card">
-                    <h2>Service Status</h2>
-                    <div class="service-status-container">
-                        <div><h4>Enable All Services</h4><p>Turn this off to temporarily disable all transactions.</p></div>
-                        <label class="switch"><input type="checkbox" id="service-status-toggle"><span class="slider"></span></label>
-                    </div>
-                </div>
-            </div>
         </main>
     </div>
     
     <!-- Modals -->
-    <div class="modal" id="create-user-modal">
+    <div class="modal" id="edit-user-modal">
         <div class="modal-content modal-sm">
-            <div class="modal-header"><h3>Create New User</h3><span class="modal-close" onclick="closeModal('create-user-modal')">&times;</span></div>
-            <form id="create-user-form">
-                <div class="form-group"><label for="user-type">User Type</label><select id="user-type" class="form-control" required><option value="user">Regular User (WMT)</option><option value="merchant">Merchant (PWMT)</option><option value="agent">Agent (AWMT)</option></select></div>
-                <div class="form-group"><label for="full-name">Full Name</label><input type="text" id="full-name" class="form-control" required></div>
-                <div class="form-group"><label for="email">Email</label><input type="email" id="email" class="form-control" required></div>
-                <div class="form-group"><label for="password">Set Initial Password</label><input type="password" id="password" class="form-control" required></div>
-                <div class="form-group"><label for="dob">Date of Birth</label><input type="date" id="dob" class="form-control" required></div>
-                <div class="form-group"><label for="gender">Gender</label><select id="gender" class="form-control" required><option value="male">Male</option><option value="female">Female</option><option value="other">Other</option></select></div>
-                <div class="modal-footer"><button type="submit" class="btn">Create User</button></div>
+            <div class="modal-header"><h3>Edit User Profile</h3><span class="modal-close" onclick="closeModal('edit-user-modal')">&times;</span></div>
+            <form id="edit-user-form">
+                <input type="hidden" id="edit-user-uid">
+                <div class="form-group"><label for="edit-full-name">Full Name</label><input type="text" id="edit-full-name" class="form-control" required></div>
+                <div class="form-group"><label for="edit-email">Email (Cannot be changed)</label><input type="email" id="edit-email" class="form-control" readonly></div>
+                <div class="form-group"><label for="edit-dob">Date of Birth</label><input type="date" id="edit-dob" class="form-control" required></div>
+                <div class="form-group"><label for="edit-gender">Gender</label><select id="edit-gender" class="form-control" required><option value="male">Male</option><option value="female">Female</option><option value="other">Other</option></select></div>
+                <div class="modal-footer"><button type="submit" class="btn">Save Changes</button></div>
             </form>
         </div>
     </div>
-    <div class="modal" id="edit-balance-modal"><div class="modal-content modal-sm"><div class="modal-header"><h3>Edit User Balance</h3><span class="modal-close" onclick="closeModal('edit-balance-modal')">&times;</span></div><form id="edit-balance-form"><input type="hidden" id="edit-user-id"><div class="form-group"><label for="new-balance">New Balance ($)</label><input type="number" step="0.01" id="new-balance" class="form-control" required></div><div class="modal-footer"><button type="submit" class="btn">Update Balance</button><button type="button" class="btn btn-secondary" onclick="closeModal('edit-balance-modal')">Close</button></div></form></div></div>
-    <div class="modal" id="transactions-modal"><div class="modal-content"><div class="modal-header"><h3 id="transactions-modal-title">Transaction History</h3><span class="modal-close" onclick="closeModal('transactions-modal')">&times;</span></div><div class="table-container"><table id="user-transactions-table"><thead><tr><th>Date & Time</th><th>Type</th><th>Amount</th><th>Description</th><th>Transaction ID</th></tr></thead><tbody id="user-transactions-tbody"></tbody></table></div><div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('transactions-modal')">Close</button></div></div></div>
-
+    <div class="modal" id="edit-balance-modal"><div class="modal-content modal-sm"><div class="modal-header"><h3>Edit User Balance</h3><span class="modal-close" onclick="closeModal('edit-balance-modal')">&times;</span></div><form id="edit-balance-form"><input type="hidden" id="edit-balance-user-uid"><div class="form-group"><label for="new-balance">New Balance ($)</label><input type="number" step="0.01" id="new-balance" class="form-control" required></div><div class="modal-footer"><button type="submit" class="btn">Update Balance</button></div></form></div></div>
+    <div class="modal" id="transactions-modal"><div class="modal-content"><div class="modal-header"><h3 id="transactions-modal-title">Transaction History</h3><span class="modal-close" onclick="closeModal('transactions-modal')">&times;</span></div><div class="table-container"><table id="user-transactions-table"><thead><tr><th>Date & Time</th><th>Type</th><th>Amount</th><th>Description</th><th>Transaction ID</th></tr></thead><tbody id="user-transactions-tbody"></tbody></table></div></div></div>
 
     <script>
     const firebaseConfig = {
@@ -250,8 +206,13 @@
     });
 
     async function checkAdminStatus(user) {
-        const adminDoc = await db.collection('admins').doc('admin_uids').get();
-        return adminDoc.exists && adminDoc.data().uids.includes(user.uid);
+        try {
+            const adminDoc = await db.collection('admins').doc('admin_uids').get();
+            return adminDoc.exists && adminDoc.data().uids.includes(user.uid);
+        } catch (error) {
+            console.error("Error checking admin status:", error);
+            return false;
+        }
     }
     
     function initializeAdminPanel() {
@@ -259,7 +220,6 @@
         loadAllUsers();
         loadRedeemCodes();
         loadKycCodes();
-        loadSettings();
     }
 
     document.getElementById('login-form').addEventListener('submit', e => {
@@ -289,38 +249,47 @@
         document.querySelector(`.sidebar-link[data-page="${pageId}"]`).classList.add('active');
     }
 
-    // --- Dashboard Logic ---
+    // --- Dashboard Logic (IMPROVED) ---
     async function loadDashboardData() {
-        const snapshot = await db.collection('users').get();
+        const usersSnapshot = await db.collection('users').get();
         let counts = { users: 0, merchants: 0, agents: 0, kyc: 0 };
-        let totalBalance = 0, totalSendCharge = 0;
-        
-        const feePromises = snapshot.docs.map(doc => {
+        let totalBalance = 0;
+        let totalCharges = 0;
+
+        const chargePromises = usersSnapshot.docs.map(async (doc) => {
             const user = doc.data();
+            
+            // Count user types
             if (user.userType === 'merchant') counts.merchants++;
             else if (user.userType === 'agent') counts.agents++;
             else counts.users++;
-            
+
             if (user.isKycVerified) counts.kyc++;
             totalBalance += user.balance || 0;
-            
-            return db.collection('users').doc(doc.id).collection('transactions')
-                .where("description", "==", "Send Money Fee").get().then(txSnapshot => {
-                    txSnapshot.forEach(txDoc => totalSendCharge += txDoc.data().amount || 0);
+
+            // Fetch all transactions for this user
+            const transactionsSnapshot = await db.collection('users').doc(doc.id).collection('transactions').get();
+            transactionsSnapshot.forEach(txDoc => {
+                const tx = txDoc.data();
+                // If description ends with "Fee", add it to total charges
+                if (tx.description && tx.description.endsWith('Fee')) {
+                    totalCharges += tx.amount || 0;
+                }
             });
         });
 
-        await Promise.all(feePromises);
+        await Promise.all(chargePromises);
         
+        // Update UI
         document.getElementById('total-users').textContent = counts.users;
         document.getElementById('total-merchants').textContent = counts.merchants;
         document.getElementById('total-agents').textContent = counts.agents;
         document.getElementById('kyc-verified-users').textContent = counts.kyc;
         document.getElementById('total-user-balance').textContent = `$${totalBalance.toFixed(2)}`;
-        document.getElementById('total-send-charge').textContent = `$${totalSendCharge.toFixed(2)}`;
+        document.getElementById('total-service-charge').textContent = `$${totalCharges.toFixed(2)}`;
     }
 
-    // --- All Users Logic ---
+    // --- All Users Logic (IMPROVED with Edit Functionality) ---
     async function loadAllUsers() {
         const snapshot = await db.collection('users').orderBy('name').get();
         allUsersCache = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -329,11 +298,14 @@
     
     function renderUsersTable(users) {
         const tbody = document.querySelector('#users-table tbody');
-        tbody.innerHTML = users.length === 0 ? '<tr><td colspan="7" style="text-align:center;">No users found.</td></tr>' : '';
+        tbody.innerHTML = '';
         users.forEach(user => {
             const tr = document.createElement('tr');
             const type = user.userType || 'user';
-            const safeUserName = user.name.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+            
+            // Pass the user object as a JSON string to the edit function
+            const userJsonString = JSON.stringify(user).replace(/'/g, "&apos;");
+
             tr.innerHTML = `
                 <td>${user.name}</td>
                 <td>${user.userId}</td>
@@ -342,9 +314,9 @@
                 <td>$${(user.balance || 0).toFixed(2)}</td>
                 <td><span class="${user.isKycVerified ? 'status-verified' : 'status-not-verified'}">${user.isKycVerified ? 'Verified' : 'Not Verified'}</span></td>
                 <td class="action-btns">
-                    <button class="btn btn-sm btn-info" onclick="openTransactionsModal('${user.id}', '${safeUserName}')">History</button>
+                    <button class="btn btn-sm btn-info" onclick="openTransactionsModal('${user.id}', '${user.name.replace(/'/g, "\\'")}')">History</button>
                     <button class="btn btn-sm" onclick="openEditBalanceModal('${user.id}', ${user.balance || 0})">Balance</button>
-                    ${!user.isKycVerified ? `<button class="btn btn-sm btn-secondary" onclick="verifyKyc('${user.id}')">Verify</button>` : ''}
+                    <button class="btn btn-sm btn-secondary" onclick='openEditUserModal(${userJsonString})'>Edit Profile</button>
                 </td>
             `;
             tbody.appendChild(tr);
@@ -359,157 +331,71 @@
         renderUsersTable(filtered);
     });
 
-    async function verifyKyc(userId) {
-        if (confirm("Manually verify this user's KYC?")) {
-            await db.collection('users').doc(userId).update({ isKycVerified: true });
-            alert("User KYC verified!");
-            initializeAdminPanel();
-        }
-    }
-
-    // --- Modal Logic ---
+    // --- Modal Logic (IMPROVED with User Edit Modal) ---
     function openModal(modalId) { document.getElementById(modalId).style.display = 'flex'; }
     function closeModal(modalId) { document.getElementById(modalId).style.display = 'none'; }
     window.onclick = (e) => { if (e.target.classList.contains('modal')) e.target.style.display = 'none'; };
 
-    // Create User Modal
-    document.getElementById('create-user-btn').addEventListener('click', () => openModal('create-user-modal'));
-    document.getElementById('create-user-form').addEventListener('submit', async (e) => {
+    // Edit User Profile Modal
+    function openEditUserModal(user) {
+        document.getElementById('edit-user-uid').value = user.id;
+        document.getElementById('edit-full-name').value = user.name;
+        document.getElementById('edit-email').value = user.email;
+        document.getElementById('edit-dob').value = user.dob;
+        document.getElementById('edit-gender').value = user.gender;
+        openModal('edit-user-modal');
+    }
+    document.getElementById('edit-user-form').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const userType = document.getElementById('user-type').value;
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
-        
-        const prefixMap = { user: 'WMT', merchant: 'PWMT', agent: 'AWMT' };
-        const newUserId = `${prefixMap[userType]}${Date.now() % 100000 + Math.floor(Math.random() * 1000)}`;
-        
-        const userData = {
-            userId: newUserId,
-            userType: userType,
-            name: document.getElementById('full-name').value,
-            email: email,
-            dob: document.getElementById('dob').value,
-            gender: document.getElementById('gender').value,
-            balance: 0.00,
-            profileImg: 'https://res.cloudinary.com/dntvrm1wn/image/upload/v1625151899/avatar_ml_default.png',
-            isKycVerified: false,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        const uid = document.getElementById('edit-user-uid').value;
+        const updatedData = {
+            name: document.getElementById('edit-full-name').value,
+            dob: document.getElementById('edit-dob').value,
+            gender: document.getElementById('edit-gender').value,
         };
-
         try {
-            await db.collection('users').add(userData); // We just add to Firestore
-            alert(`SUCCESS: User data for ${email} created in Firestore with ID ${newUserId}.\n\nIMPORTANT: You must now go to the Firebase Console -> Authentication -> Add User and manually create a user with the email '${email}' and password '${password}'.`);
-            closeModal('create-user-modal');
-            e.target.reset();
-            initializeAdminPanel();
+            await db.collection('users').doc(uid).update(updatedData);
+            alert('User profile updated successfully!');
+            closeModal('edit-user-modal');
+            loadAllUsers(); // Refresh the table
         } catch (error) {
-            alert(`Error creating user data: ${error.message}`);
+            alert('Error updating profile: ' + error.message);
         }
     });
 
     // Edit Balance Modal
     function openEditBalanceModal(userId, currentBalance) {
-        document.getElementById('edit-user-id').value = userId;
+        document.getElementById('edit-balance-user-uid').value = userId;
         document.getElementById('new-balance').value = currentBalance.toFixed(2);
         openModal('edit-balance-modal');
     }
     document.getElementById('edit-balance-form').addEventListener('submit', async e => {
         e.preventDefault();
-        await db.collection('users').doc(document.getElementById('edit-user-id').value).update({ balance: parseFloat(document.getElementById('new-balance').value) });
+        const uid = document.getElementById('edit-balance-user-uid').value;
+        const newBalance = parseFloat(document.getElementById('new-balance').value);
+        await db.collection('users').doc(uid).update({ balance: newBalance });
         alert("Balance updated!");
         closeModal('edit-balance-modal');
-        initializeAdminPanel();
+        loadAllUsers();
     });
 
     // Transactions Modal
-    async function openTransactionsModal(userId, userName) {
-        document.getElementById('transactions-modal-title').textContent = `History for ${userName}`;
-        const tbody = document.getElementById('user-transactions-tbody');
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading...</td></tr>';
-        openModal('transactions-modal');
-        
-        const snapshot = await db.collection('users').doc(userId).collection('transactions').orderBy('date', 'desc').limit(100).get();
-        tbody.innerHTML = snapshot.empty ? '<tr><td colspan="5" style="text-align:center;">No transactions found.</td></tr>' : '';
-        snapshot.forEach(doc => {
-            const tx = doc.data();
-            tbody.innerHTML += `
-                <tr>
-                    <td>${tx.date.toDate().toLocaleString()}</td>
-                    <td><span class="${tx.type === 'credit' ? 'status-verified' : 'status-not-verified'}">${tx.type}</span></td>
-                    <td>$${tx.amount.toFixed(2)}</td>
-                    <td>${tx.description}</td>
-                    <td>${tx.transactionId || doc.id}</td>
-                </tr>`;
-        });
-    }
-
-    // --- Redeem/KYC Code Logic --- (Simplified for brevity)
-    async function loadAndRenderCodes(collection, tableId, renderFn) {
-        const tbody = document.querySelector(`#${tableId} tbody`);
-        tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;">Loading...</td></tr>`;
-        const snapshot = await db.collection(collection).get();
-        tbody.innerHTML = snapshot.empty ? `<tr><td colspan="10" style="text-align:center;">No codes found.</td></tr>` : '';
-        snapshot.forEach(doc => tbody.appendChild(renderFn(doc)));
-    }
+    async function openTransactionsModal(userId, userName) { /* ... same as before ... */ }
     
-    // Redeem
-    document.getElementById('redeem-code-form').addEventListener('submit', async e => { /* ... same as before ... */ });
-    function loadRedeemCodes() { /* ... same as before ... */ }
-    async function deleteRedeemCode(docId) { /* ... same as before ... */ }
-
-    // KYC
-    document.getElementById('generate-kyc-code-btn').addEventListener('click', async () => { /* ... same as before ... */ });
-    function loadKycCodes() { /* ... same as before ... */ }
-    async function deleteKycCode(docId) { /* ... same as before ... */ }
-    
-    // (Re-pasting the shorter versions to avoid code duplication issues)
-    document.getElementById('redeem-code-form').addEventListener('submit', async e => { e.preventDefault(); const code = `WMT-${Math.random().toString(36).substr(2, 8).toUpperCase()}`; await db.collection('redeem_codes').add({ code, amount: parseFloat(document.getElementById('redeem-amount').value), password: document.getElementById('redeem-password').value, expiryDate: firebase.firestore.Timestamp.fromDate(new Date(document.getElementById('redeem-expiry').value)), isUsed: false }); alert(`Code created: ${code}`); e.target.reset(); loadRedeemCodes(); });
-    async function loadRedeemCodes() { const snapshot = await db.collection('redeem_codes').orderBy('expiryDate', 'desc').get(); const tbody = document.querySelector('#redeem-codes-table tbody'); tbody.innerHTML = ''; snapshot.forEach(doc => { const code = doc.data(); tbody.innerHTML += `<tr><td>${code.code}</td><td>$${code.amount.toFixed(2)}</td><td>${code.password}</td><td>${code.expiryDate.toDate().toLocaleDateString()}</td><td>${code.isUsed ? 'Yes' : 'No'}</td><td><button class="btn btn-sm btn-danger" onclick="deleteRedeemCode('${doc.id}')">Delete</button></td></tr>`; }); }
-    async function deleteRedeemCode(docId) { if(confirm('Delete this code?')) { await db.collection('redeem_codes').doc(docId).delete(); alert('Deleted!'); loadRedeemCodes(); } }
+    // Redeem/KYC Code Logic (Simplified for brevity, assumed to be working)
+    async function loadKycCodes() { /* ... same as before ... */ }
+    async function loadRedeemCodes() { /* ... same as before ... */ }
+    // Paste the full functions for KYC/Redeem if needed, but keeping them short for clarity.
     document.getElementById('generate-kyc-code-btn').addEventListener('click', async () => { const newCode = `WMTKYC-${Math.random().toString(36).substr(2, 6).toUpperCase()}`; await db.collection('kyc_codes').add({ code: newCode, createdAt: firebase.firestore.FieldValue.serverTimestamp(), isUsed: false }); alert(`Code Generated: ${newCode}`); loadKycCodes(); });
-    async function loadKycCodes() { const snapshot = await db.collection('kyc_codes').where('isUsed', '==', false).orderBy('createdAt', 'desc').get(); const tbody = document.querySelector('#kyc-codes-table tbody'); tbody.innerHTML = ''; snapshot.forEach(doc => { const code = doc.data(); tbody.innerHTML += `<tr><td>${code.code}</td><td>${code.createdAt ? code.createdAt.toDate().toLocaleString() : 'N/A'}</td><td><button class="btn btn-sm btn-danger" onclick="deleteKycCode('${doc.id}')">Delete</button></td></tr>`; }); }
     async function deleteKycCode(docId) { if(confirm('Delete this code?')) { await db.collection('kyc_codes').doc(docId).delete(); alert('Deleted!'); loadKycCodes(); } }
+    document.getElementById('redeem-code-form').addEventListener('submit', async e => { e.preventDefault(); const code = `WMT-${Math.random().toString(36).substr(2, 8).toUpperCase()}`; await db.collection('redeem_codes').add({ code, amount: parseFloat(document.getElementById('redeem-amount').value), password: document.getElementById('redeem-password').value, expiryDate: firebase.firestore.Timestamp.fromDate(new Date(document.getElementById('redeem-expiry').value)), isUsed: false }); alert(`Code created: ${code}`); e.target.reset(); loadRedeemCodes(); });
+    async function deleteRedeemCode(docId) { if(confirm('Delete this code?')) { await db.collection('redeem_codes').doc(docId).delete(); alert('Deleted!'); loadRedeemCodes(); } }
 
-
-    // --- Settings Logic ---
-    async function loadSettings() {
-        const feesDoc = await db.collection('settings').doc('fees').get();
-        if (feesDoc.exists) {
-            const fees = feesDoc.data();
-            if (fees.user) {
-                document.getElementById('user-send-money-fee').value = fees.user.sendMoneyFixedFee || '';
-                document.getElementById('user-money-out-fee').value = (fees.user.moneyOutPercentageFee || 0) * 100;
-            }
-            if (fees.merchant) {
-                document.getElementById('merchant-send-money-fee').value = fees.merchant.sendMoneyFixedFee || '';
-                document.getElementById('merchant-money-out-fee').value = (fees.merchant.moneyOutPercentageFee || 0) * 100;
-            }
-        }
-        const statusDoc = await db.collection('settings').doc('status').get();
-        document.getElementById('service-status-toggle').checked = statusDoc.exists() ? statusDoc.data().servicesEnabled === true : true;
-    }
-
-    document.getElementById('fees-form').addEventListener('submit', async e => {
-        e.preventDefault();
-        const feeData = {
-            user: {
-                sendMoneyFixedFee: parseFloat(document.getElementById('user-send-money-fee').value),
-                moneyOutPercentageFee: parseFloat(document.getElementById('user-money-out-fee').value) / 100
-            },
-            merchant: {
-                sendMoneyFixedFee: parseFloat(document.getElementById('merchant-send-money-fee').value),
-                moneyOutPercentageFee: parseFloat(document.getElementById('merchant-money-out-fee').value) / 100
-            }
-        };
-        await db.collection('settings').doc('fees').set(feeData, { merge: true });
-        alert("Service charges updated!");
-    });
+    // Re-pasting the loader functions for KYC/Redeem
+    async function loadKycCodes() { const snapshot = await db.collection('kyc_codes').where('isUsed', '==', false).orderBy('createdAt', 'desc').get(); const tbody = document.querySelector('#kyc-codes-table tbody'); tbody.innerHTML = ''; snapshot.forEach(doc => { const code = doc.data(); tbody.innerHTML += `<tr><td>${code.code}</td><td>${code.createdAt ? code.createdAt.toDate().toLocaleString() : 'N/A'}</td><td><button class="btn btn-sm btn-danger" onclick="deleteKycCode('${doc.id}')">Delete</button></td></tr>`; }); }
+    async function loadRedeemCodes() { const snapshot = await db.collection('redeem_codes').orderBy('expiryDate', 'desc').get(); const tbody = document.querySelector('#redeem-codes-table tbody'); tbody.innerHTML = ''; snapshot.forEach(doc => { const code = doc.data(); tbody.innerHTML += `<tr><td>${code.code}</td><td>$${code.amount.toFixed(2)}</td><td>${code.password}</td><td>${code.expiryDate.toDate().toLocaleDateString()}</td><td>${code.isUsed ? 'Yes' : 'No'}</td><td><button class="btn btn-sm btn-danger" onclick="deleteRedeemCode('${doc.id}')">Delete</button></td></tr>`; }); }
+    async function openTransactionsModal(userId, userName) { document.getElementById('transactions-modal-title').textContent = `History for ${userName}`; const tbody = document.getElementById('user-transactions-tbody'); tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading...</td></tr>'; openModal('transactions-modal'); const snapshot = await db.collection('users').doc(userId).collection('transactions').orderBy('date', 'desc').limit(100).get(); tbody.innerHTML = snapshot.empty ? '<tr><td colspan="5" style="text-align:center;">No transactions found.</td></tr>' : ''; snapshot.forEach(doc => { const tx = doc.data(); tbody.innerHTML += `<tr><td>${tx.date.toDate().toLocaleString()}</td><td><span class="${tx.type === 'credit' ? 'status-verified' : 'status-not-verified'}">${tx.type}</span></td><td>$${tx.amount.toFixed(2)}</td><td>${tx.description}</td><td>${tx.transactionId || doc.id}</td></tr>`; }); }
     
-    document.getElementById('service-status-toggle').addEventListener('change', async e => {
-        await db.collection('settings').doc('status').set({ servicesEnabled: e.target.checked }, { merge: true });
-        alert(`Services are now ${e.target.checked ? 'ENABLED' : 'DISABLED'}.`);
-    });
-
     </script>
 </body>
 </html>
