@@ -11,346 +11,67 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
     <style>
         :root {
-            --primary: #1a73e8;
-            --secondary: #34a853;
-            --accent: #fbbc05;
-            --danger: #ea4335;
-            --light: #f8f9fa;
-            --dark: #202124;
-            --gray: #5f6368;
-            --bg-color: #f1f3f6;
-            --info: #03a9f4;
+            --primary: #1a73e8; --secondary: #34a853; --accent: #fbbc05; --danger: #ea4335;
+            --light: #f8f9fa; --dark: #202124; --gray: #5f6368; --bg-color: #f1f3f6; --info: #03a9f4;
         }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--dark);
-        }
-
-        /* Login Container */
-        .login-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #0d47a1, #00796b);
-        }
-
-        .login-card {
-            background: white;
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            width: 100%;
-            max-width: 400px;
-            text-align: center;
-        }
-
-        .login-card h1 {
-            color: var(--dark);
-            margin-bottom: 20px;
-        }
-
-        /* General Styles */
-        .admin-panel {
-            display: none;
-            flex-direction: row;
-        }
-
-        .sidebar {
-            width: 250px;
-            background: #ffffff;
-            height: 100vh;
-            position: fixed;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
-            padding-top: 20px;
-        }
-        
-        .sidebar-header {
-            padding: 0 20px 20px 20px;
-            text-align: center;
-            border-bottom: 1px solid #eee;
-        }
-
-        .sidebar-header h2 {
-            color: var(--primary);
-        }
-
-        .sidebar-menu {
-            list-style: none;
-            padding-top: 20px;
-        }
-        
-        .sidebar-menu a {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            padding: 15px 20px;
-            color: var(--dark);
-            text-decoration: none;
-            transition: all 0.3s;
-            font-weight: 500;
-        }
-
-        .sidebar-menu a:hover, .sidebar-menu a.active {
-            background: #e8f0fe;
-            color: var(--primary);
-            border-right: 3px solid var(--primary);
-        }
-
-        .sidebar-menu i {
-            font-size: 18px;
-            width: 20px;
-            text-align: center;
-        }
-        
-        .main-content {
-            margin-left: 250px;
-            padding: 30px;
-            width: calc(100% - 250px);
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--dark); }
+        .login-container { display: flex; justify-content: center; align-items: center; min-height: 100vh; background: linear-gradient(135deg, #0d47a1, #00796b); }
+        .login-card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); width: 100%; max-width: 400px; text-align: center; }
+        .login-card h1 { margin-bottom: 20px; }
+        .admin-panel { display: none; flex-direction: row; }
+        .sidebar { width: 250px; background: #ffffff; height: 100vh; position: fixed; box-shadow: 2px 0 10px rgba(0,0,0,0.05); padding-top: 20px; }
+        .sidebar-header { padding: 0 20px 20px 20px; text-align: center; border-bottom: 1px solid #eee; }
+        .sidebar-header h2 { color: var(--primary); }
+        .sidebar-menu { list-style: none; padding-top: 20px; }
+        .sidebar-menu a { display: flex; align-items: center; gap: 15px; padding: 15px 20px; color: var(--dark); text-decoration: none; transition: all 0.3s; font-weight: 500; }
+        .sidebar-menu a:hover, .sidebar-menu a.active { background: #e8f0fe; color: var(--primary); border-right: 3px solid var(--primary); }
+        .sidebar-menu i { font-size: 18px; width: 20px; text-align: center; }
+        .main-content { margin-left: 250px; padding: 30px; width: calc(100% - 250px); }
         .page { display: none; }
         .page.active { display: block; }
-        
-        .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-        }
-
-        .page-header h1 {
-            font-size: 28px;
-        }
-        
-        /* Dashboard Cards */
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-        }
-
-        .stat-card {
-            background: white;
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-        
-        .stat-card-icon {
-            font-size: 28px;
-            padding: 18px;
-            border-radius: 50%;
-            color: white;
-        }
-        
-        .stat-card-info h3 {
-            font-size: 28px;
-            color: var(--dark);
-        }
-
-        .stat-card-info p {
-            font-size: 14px;
-            color: var(--gray);
-        }
-
-        /* Form & Table Styles */
-        .card {
-            background: white;
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            margin-bottom: 25px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 12px 15px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            font-size: 16px;
-        }
-
-        .btn {
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 12px 20px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .page-header h1 { font-size: 28px; }
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        .stat-card { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 20px; }
+        .stat-card-icon { font-size: 28px; padding: 18px; border-radius: 50%; color: white; }
+        .stat-card-info h3 { font-size: 28px; }
+        .stat-card-info p { font-size: 14px; color: var(--gray); }
+        .card { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 25px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; }
+        .form-control { width: 100%; padding: 12px 15px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; }
+        .btn { background: var(--primary); color: white; border: none; border-radius: 8px; padding: 12px 20px; font-size: 16px; cursor: pointer; transition: background 0.3s; }
         .btn:hover { background: #1669d6; }
-        .btn-danger { background: var(--danger); }
-        .btn-danger:hover { background: #d33223; }
-        .btn-secondary { background: var(--gray); }
-        .btn-secondary:hover { background: #4a4d50; }
-        .btn-info { background: var(--info); }
-        .btn-info:hover { background: #039be5; }
-        
-        .table-container {
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        th, td {
-            padding: 12px 15px;
-            text-align: left;
-            border-bottom: 1px solid #eee;
-        }
-
-        th {
-            background-color: #f9fafb;
-            font-weight: 600;
-        }
-
-        .action-btns button {
-            margin-right: 5px;
-            padding: 5px 10px;
-            font-size: 12px;
-        }
-
-        .status-verified {
-            color: var(--secondary);
-            font-weight: bold;
-        }
-        .status-not-verified {
-            color: var(--danger);
-            font-weight: bold;
-        }
-
-        /* Modal Styles */
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 100;
-            display: none;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-content {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            width: 90%;
-            max-width: 800px; 
-        }
-        
-        .modal-content.modal-sm {
-            max-width: 500px;
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 15px;
-        }
-
-        .modal-close {
-            cursor: pointer;
-            font-size: 24px;
-            color: var(--gray);
-        }
-        .modal-close:hover {
-            color: var(--dark);
-        }
-        
-        /* ---- NEW: Style for scrollable table in modal ---- */
-        .modal .table-container {
-            max-height: 50vh; /* Set max height to 50% of viewport height */
-            overflow-y: auto; /* Add vertical scrollbar when content overflows */
-        }
-        
-        /* ---- NEW: Style for modal footer ---- */
-        .modal-footer {
-            margin-top: 25px;
-            text-align: right;
-            border-top: 1px solid #eee;
-            padding-top: 20px;
-        }
-
-        /* Service Status Toggle Switch */
-        .service-status-container {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background-color: #f9f9f9;
-            padding: 20px;
-            border-radius: 8px;
-        }
-        
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 60px;
-            height: 34px;
-        }
+        .btn-danger { background: var(--danger); } .btn-danger:hover { background: #d33223; }
+        .btn-secondary { background: var(--gray); } .btn-secondary:hover { background: #4a4d50; }
+        .btn-info { background: var(--info); } .btn-info:hover { background: #039be5; }
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background-color: #f9fafb; font-weight: 600; }
+        .action-btns button { margin-right: 5px; padding: 5px 10px; font-size: 12px; }
+        .status-verified { color: var(--secondary); font-weight: bold; }
+        .status-not-verified { color: var(--danger); font-weight: bold; }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 100; display: none; justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 30px; border-radius: 10px; width: 90%; max-width: 800px; }
+        .modal-content.modal-sm { max-width: 500px; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
+        .modal-close { cursor: pointer; font-size: 24px; color: var(--gray); }
+        .modal .table-container { max-height: 50vh; overflow-y: auto; }
+        .modal-footer { margin-top: 25px; text-align: right; border-top: 1px solid #eee; padding-top: 20px; }
+        .service-status-container { display: flex; align-items: center; justify-content: space-between; background-color: #f9f9f9; padding: 20px; border-radius: 8px; }
+        .switch { position: relative; display: inline-block; width: 60px; height: 34px; }
         .switch input { display: none; }
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            transition: .4s;
-            border-radius: 34px;
-        }
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 26px;
-            width: 26px;
-            left: 4px;
-            bottom: 4px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-        input:checked + .slider {
-            background-color: var(--secondary);
-        }
-        input:checked + .slider:before {
-            transform: translateX(26px);
-        }
-
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--secondary); }
+        input:checked + .slider:before { transform: translateX(26px); }
+        /* Badge Styles for User Type */
+        .badge { padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 600; color: white; }
+        .badge-user { background-color: var(--primary); }
+        .badge-merchant { background-color: var(--danger); }
+        .badge-agent { background-color: var(--accent); }
     </style>
 </head>
 <body>
@@ -359,12 +80,8 @@
         <div class="login-card">
             <h1>Admin Panel Login</h1>
             <form id="login-form">
-                <div class="form-group">
-                    <input type="email" id="login-email" class="form-control" placeholder="Admin Email" required>
-                </div>
-                <div class="form-group">
-                    <input type="password" id="login-password" class="form-control" placeholder="Password" required>
-                </div>
+                <div class="form-group"><input type="email" id="login-email" class="form-control" placeholder="Admin Email" required></div>
+                <div class="form-group"><input type="password" id="login-password" class="form-control" placeholder="Password" required></div>
                 <button type="submit" class="btn">Login</button>
             </form>
         </div>
@@ -372,9 +89,7 @@
 
     <div class="admin-panel" id="admin-panel">
         <div class="sidebar">
-            <div class="sidebar-header">
-                <h2>WMT Admin</h2>
-            </div>
+            <div class="sidebar-header"><h2>WMT Admin</h2></div>
             <ul class="sidebar-menu">
                 <li><a href="#" class="sidebar-link active" data-page="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
                 <li><a href="#" class="sidebar-link" data-page="users"><i class="fas fa-users"></i> All Users</a></li>
@@ -389,48 +104,27 @@
             <div class="page active" id="dashboard-content">
                 <div class="page-header"><h1>Dashboard</h1></div>
                 <div class="dashboard-grid">
-                    <div class="stat-card">
-                        <div class="stat-card-icon" style="background: var(--primary);"><i class="fas fa-users"></i></div>
-                        <div class="stat-card-info">
-                            <h3 id="total-users">0</h3>
-                            <p>Total Users</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-card-icon" style="background: var(--secondary);"><i class="fas fa-check-circle"></i></div>
-                        <div class="stat-card-info">
-                            <h3 id="kyc-verified-users">0</h3>
-                            <p>KYC Verified Users</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-card-icon" style="background: #29b6f6;"><i class="fas fa-wallet"></i></div>
-                        <div class="stat-card-info">
-                            <h3 id="total-user-balance">$0.00</h3>
-                            <p>Total User Balance</p>
-                        </div>
-                    </div>
-                     <div class="stat-card">
-                        <div class="stat-card-icon" style="background: var(--accent);"><i class="fas fa-hand-holding-usd"></i></div>
-                        <div class="stat-card-info">
-                            <h3 id="total-send-charge">$0.00</h3>
-                            <p>Total Send Money Charge</p>
-                        </div>
-                    </div>
+                    <div class="stat-card"><div class="stat-card-icon" style="background: var(--primary);"><i class="fas fa-users"></i></div><div class="stat-card-info"><h3 id="total-users">0</h3><p>Total Users</p></div></div>
+                    <div class="stat-card"><div class="stat-card-icon" style="background: var(--danger);"><i class="fas fa-store"></i></div><div class="stat-card-info"><h3 id="total-merchants">0</h3><p>Total Merchants</p></div></div>
+                    <div class="stat-card"><div class="stat-card-icon" style="background: var(--accent);"><i class="fas fa-user-tie"></i></div><div class="stat-card-info"><h3 id="total-agents">0</h3><p>Total Agents</p></div></div>
+                    <div class="stat-card"><div class="stat-card-icon" style="background: var(--secondary);"><i class="fas fa-check-circle"></i></div><div class="stat-card-info"><h3 id="kyc-verified-users">0</h3><p>KYC Verified Users</p></div></div>
+                    <div class="stat-card"><div class="stat-card-icon" style="background: #29b6f6;"><i class="fas fa-wallet"></i></div><div class="stat-card-info"><h3 id="total-user-balance">$0.00</h3><p>Total Platform Balance</p></div></div>
+                    <div class="stat-card"><div class="stat-card-icon" style="background: #7E57C2;"><i class="fas fa-hand-holding-usd"></i></div><div class="stat-card-info"><h3 id="total-send-charge">$0.00</h3><p>Total Send Money Charge</p></div></div>
                 </div>
             </div>
 
             <!-- All Users Page -->
             <div class="page" id="users-content">
-                <div class="page-header"><h1>All Users</h1></div>
+                <div class="page-header">
+                    <h1>All Users</h1>
+                    <button class="btn" id="create-user-btn"><i class="fas fa-plus"></i> Create New User</button>
+                </div>
                 <div class="card">
-                    <div class="form-group">
-                        <input type="text" id="user-search" class="form-control" placeholder="Search by Name, Email, or User ID...">
-                    </div>
+                    <div class="form-group"><input type="text" id="user-search" class="form-control" placeholder="Search by Name, Email, or User ID..."></div>
                     <div class="table-container">
                         <table id="users-table">
-                            <thead><tr><th>Name</th><th>User ID</th><th>Email</th><th>Balance</th><th>KYC Status</th><th>Actions</th></tr></thead>
-                            <tbody><tr><td colspan="6" style="text-align:center;">Loading users...</td></tr></tbody>
+                            <thead><tr><th>Name</th><th>User ID</th><th>User Type</th><th>Email</th><th>Balance</th><th>KYC Status</th><th>Actions</th></tr></thead>
+                            <tbody></tbody>
                         </table>
                     </div>
                 </div>
@@ -438,20 +132,15 @@
 
             <!-- KYC Page -->
             <div class="page" id="kyc-content">
-                <div class="page-header"><h1>KYC Verification Codes</h1></div>
+                 <div class="page-header"><h1>KYC Verification Codes</h1></div>
                 <div class="card">
                     <h2>Generate New KYC Code</h2>
-                    <p>Generated codes will be in the format 'WMTKYC-XXXXXX' and can be used only once.</p>
+                    <p>Generated codes are single-use and valid for all user types.</p>
                     <button id="generate-kyc-code-btn" class="btn" style="margin-top: 15px;">Generate New Code</button>
                 </div>
                 <div class="card">
                     <h2>Unused KYC Codes</h2>
-                    <div class="table-container">
-                        <table id="kyc-codes-table">
-                            <thead><tr><th>Code</th><th>Created At</th><th>Action</th></tr></thead>
-                            <tbody><tr><td colspan="3" style="text-align:center;">Loading codes...</td></tr></tbody>
-                        </table>
-                    </div>
+                    <div class="table-container"><table id="kyc-codes-table"><thead><tr><th>Code</th><th>Created At</th><th>Action</th></tr></thead><tbody></tbody></table></div>
                 </div>
             </div>
 
@@ -469,103 +158,58 @@
                 </div>
                 <div class="card">
                     <h2>Active Redeem Codes</h2>
-                    <div class="table-container">
-                        <table id="redeem-codes-table">
-                            <thead><tr><th>Code</th><th>Amount</th><th>Password</th><th>Expiry</th><th>Used</th><th>Action</th></tr></thead>
-                            <tbody><tr><td colspan="6" style="text-align:center;">Loading codes...</td></tr></tbody>
-                        </table>
-                    </div>
+                    <div class="table-container"><table id="redeem-codes-table"><thead><tr><th>Code</th><th>Amount</th><th>Password</th><th>Expiry</th><th>Used</th><th>Action</th></tr></thead><tbody></tbody></table></div>
                 </div>
             </div>
             
             <!-- Settings Page -->
             <div class="page" id="settings-content">
                 <div class="page-header"><h1>Settings</h1></div>
-                
                 <div class="card">
                     <h2>Service Charges</h2>
                     <form id="fees-form">
-                        <div class="form-group">
-                            <label for="send-money-fee">Send Money Fixed Fee ($)</label>
-                            <input type="number" step="0.01" id="send-money-fee" class="form-control" placeholder="e.g., 0.05">
+                        <div style="margin-bottom: 25px;">
+                            <h4>Regular User Fees</h4>
+                            <div class="form-group"><label for="user-send-money-fee">Send Money Fixed Fee ($)</label><input type="number" step="0.01" id="user-send-money-fee" class="form-control" placeholder="e.g., 0.05"></div>
+                            <div class="form-group"><label for="user-money-out-fee">Money Out Percentage Fee (%)</label><input type="number" step="0.01" id="user-money-out-fee" class="form-control" placeholder="e.g., 1 for 1%"></div>
                         </div>
-                        <div class="form-group">
-                            <label for="money-out-fee">Money Out Percentage Fee (%)</label>
-                            <input type="number" step="0.01" id="money-out-fee" class="form-control" placeholder="e.g., 1 for 1%">
+                        <hr style="margin-bottom: 25px;">
+                        <div>
+                            <h4>Merchant Fees</h4>
+                            <div class="form-group"><label for="merchant-send-money-fee">Send Money Fixed Fee ($)</label><input type="number" step="0.01" id="merchant-send-money-fee" class="form-control" placeholder="e.g., 0.08"></div>
+                            <div class="form-group"><label for="merchant-money-out-fee">Money Out Percentage Fee (%)</label><input type="number" step="0.01" id="merchant-money-out-fee" class="form-control" placeholder="e.g., 0.08 for 0.08%"></div>
                         </div>
-                        <button type="submit" class="btn">Save Charges</button>
+                        <button type="submit" class="btn">Save All Charges</button>
                     </form>
                 </div>
-                
                 <div class="card">
                     <h2>Service Status</h2>
                     <div class="service-status-container">
-                        <div>
-                            <h4>Enable All Services</h4>
-                            <p>Turn this off to temporarily disable all transactions for all users.</p>
-                        </div>
-                        <label class="switch">
-                            <input type="checkbox" id="service-status-toggle">
-                            <span class="slider"></span>
-                        </label>
+                        <div><h4>Enable All Services</h4><p>Turn this off to temporarily disable all transactions.</p></div>
+                        <label class="switch"><input type="checkbox" id="service-status-toggle"><span class="slider"></span></label>
                     </div>
                 </div>
             </div>
         </main>
     </div>
-
-    <!-- Edit Balance Modal -->
-    <div class="modal" id="edit-balance-modal">
-        <div class="modal-content modal-sm">
-            <div class="modal-header">
-                <h3>Edit User Balance</h3>
-                <span class="modal-close" onclick="closeModal('edit-balance-modal')">&times;</span>
-            </div>
-            <form id="edit-balance-form">
-                <input type="hidden" id="edit-user-id">
-                <div class="form-group">
-                    <label for="new-balance">New Balance ($)</label>
-                    <input type="number" step="0.01" id="new-balance" class="form-control" required>
-                </div>
-                <button type="submit" class="btn">Update Balance</button>
-            </form>
-            <!-- NEW: Modal Footer with close button -->
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeModal('edit-balance-modal')">Close</button>
-            </div>
-        </div>
-    </div>
     
-    <!-- User Transactions Modal -->
-    <div class="modal" id="transactions-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="transactions-modal-title">Transaction History</h3>
-                <span class="modal-close" onclick="closeModal('transactions-modal')">&times;</span>
-            </div>
-            <!-- UPDATED: table container is now inside the modal body -->
-            <div class="table-container">
-                <table id="user-transactions-table">
-                    <thead>
-                        <tr>
-                            <th>Date & Time</th>
-                            <th>Type</th>
-                            <th>Amount</th>
-                            <th>Description</th>
-                            <th>Transaction ID</th>
-                        </tr>
-                    </thead>
-                    <tbody id="user-transactions-tbody">
-                        <!-- Transactions will be loaded here -->
-                    </tbody>
-                </table>
-            </div>
-            <!-- NEW: Modal Footer with close button -->
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeModal('transactions-modal')">Close</button>
-            </div>
+    <!-- Modals -->
+    <div class="modal" id="create-user-modal">
+        <div class="modal-content modal-sm">
+            <div class="modal-header"><h3>Create New User</h3><span class="modal-close" onclick="closeModal('create-user-modal')">&times;</span></div>
+            <form id="create-user-form">
+                <div class="form-group"><label for="user-type">User Type</label><select id="user-type" class="form-control" required><option value="user">Regular User (WMT)</option><option value="merchant">Merchant (PWMT)</option><option value="agent">Agent (AWMT)</option></select></div>
+                <div class="form-group"><label for="full-name">Full Name</label><input type="text" id="full-name" class="form-control" required></div>
+                <div class="form-group"><label for="email">Email</label><input type="email" id="email" class="form-control" required></div>
+                <div class="form-group"><label for="password">Set Initial Password</label><input type="password" id="password" class="form-control" required></div>
+                <div class="form-group"><label for="dob">Date of Birth</label><input type="date" id="dob" class="form-control" required></div>
+                <div class="form-group"><label for="gender">Gender</label><select id="gender" class="form-control" required><option value="male">Male</option><option value="female">Female</option><option value="other">Other</option></select></div>
+                <div class="modal-footer"><button type="submit" class="btn">Create User</button></div>
+            </form>
         </div>
     </div>
+    <div class="modal" id="edit-balance-modal"><div class="modal-content modal-sm"><div class="modal-header"><h3>Edit User Balance</h3><span class="modal-close" onclick="closeModal('edit-balance-modal')">&times;</span></div><form id="edit-balance-form"><input type="hidden" id="edit-user-id"><div class="form-group"><label for="new-balance">New Balance ($)</label><input type="number" step="0.01" id="new-balance" class="form-control" required></div><div class="modal-footer"><button type="submit" class="btn">Update Balance</button><button type="button" class="btn btn-secondary" onclick="closeModal('edit-balance-modal')">Close</button></div></form></div></div>
+    <div class="modal" id="transactions-modal"><div class="modal-content"><div class="modal-header"><h3 id="transactions-modal-title">Transaction History</h3><span class="modal-close" onclick="closeModal('transactions-modal')">&times;</span></div><div class="table-container"><table id="user-transactions-table"><thead><tr><th>Date & Time</th><th>Type</th><th>Amount</th><th>Description</th><th>Transaction ID</th></tr></thead><tbody id="user-transactions-tbody"></tbody></table></div><div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('transactions-modal')">Close</button></div></div></div>
 
 
     <script>
@@ -577,21 +221,14 @@
       storageBucket: "wmt-services.firebasestorage.app",
       messagingSenderId: "935651931226",
       appId: "1:935651931226:web:5c412bd299f215c14f5463",
-      measurementId: "G-6NTS4GW1DK"
     };
 
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    // DOM Elements
     const loginContainer = document.getElementById('login-container');
     const adminPanel = document.getElementById('admin-panel');
-    const loginForm = document.getElementById('login-form');
-    const logoutBtn = document.getElementById('logout-btn');
-    const sidebarLinks = document.querySelectorAll('.sidebar-link');
-    const pages = document.querySelectorAll('.page');
-    
     let allUsersCache = [];
 
     // --- Authentication ---
@@ -601,12 +238,7 @@
             if (isAdmin) {
                 loginContainer.style.display = 'none';
                 adminPanel.style.display = 'flex';
-                // Load all data on login
-                loadDashboardData();
-                loadAllUsers();
-                loadRedeemCodes();
-                loadKycCodes();
-                loadSettings(); 
+                initializeAdminPanel();
             } else {
                 alert("You are not authorized to access this panel.");
                 auth.signOut();
@@ -618,376 +250,266 @@
     });
 
     async function checkAdminStatus(user) {
-        try {
-            const adminDoc = await db.collection('admins').doc('admin_uids').get();
-            if (adminDoc.exists && adminDoc.data().uids.includes(user.uid)) {
-                return true;
-            }
-            return false;
-        } catch (error) {
-            console.error("Error checking admin status:", error);
-            return false;
-        }
+        const adminDoc = await db.collection('admins').doc('admin_uids').get();
+        return adminDoc.exists && adminDoc.data().uids.includes(user.uid);
+    }
+    
+    function initializeAdminPanel() {
+        loadDashboardData();
+        loadAllUsers();
+        loadRedeemCodes();
+        loadKycCodes();
+        loadSettings();
     }
 
-    loginForm.addEventListener('submit', e => {
+    document.getElementById('login-form').addEventListener('submit', e => {
         e.preventDefault();
-        const email = document.getElementById('login-email').value;
-        const password = document.getElementById('login-password').value;
-        auth.signInWithEmailAndPassword(email, password)
-            .catch(error => alert("Login Failed: " + error.message));
+        auth.signInWithEmailAndPassword(
+            document.getElementById('login-email').value,
+            document.getElementById('login-password').value
+        ).catch(error => alert("Login Failed: " + error.message));
     });
 
-    logoutBtn.addEventListener('click', () => auth.signOut());
+    document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());
 
     // --- Navigation ---
-    sidebarLinks.forEach(link => {
+    document.querySelectorAll('.sidebar-link').forEach(link => {
         if (!link.id.includes('logout')) {
             link.addEventListener('click', e => {
                 e.preventDefault();
-                const pageId = link.getAttribute('data-page');
-                showPage(pageId);
+                showPage(link.getAttribute('data-page'));
             });
         }
     });
 
     function showPage(pageId) {
-        pages.forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.getElementById(`${pageId}-content`).classList.add('active');
-        sidebarLinks.forEach(l => l.classList.remove('active'));
+        document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
         document.querySelector(`.sidebar-link[data-page="${pageId}"]`).classList.add('active');
     }
 
     // --- Dashboard Logic ---
     async function loadDashboardData() {
-        const usersRef = db.collection('users');
-        const snapshot = await usersRef.get();
-        let totalUsers = 0, kycVerifiedUsers = 0, totalBalance = 0, totalSendCharge = 0;
-        totalUsers = snapshot.size;
-        const promises = [];
-        snapshot.forEach(doc => {
+        const snapshot = await db.collection('users').get();
+        let counts = { users: 0, merchants: 0, agents: 0, kyc: 0 };
+        let totalBalance = 0, totalSendCharge = 0;
+        
+        const feePromises = snapshot.docs.map(doc => {
             const user = doc.data();
-            if (user.isKycVerified) kycVerifiedUsers++;
+            if (user.userType === 'merchant') counts.merchants++;
+            else if (user.userType === 'agent') counts.agents++;
+            else counts.users++;
+            
+            if (user.isKycVerified) counts.kyc++;
             totalBalance += user.balance || 0;
-            const txPromise = db.collection('users').doc(doc.id).collection('transactions').get().then(txSnapshot => {
-                txSnapshot.forEach(txDoc => {
-                    const tx = txDoc.data();
-                    if (tx.description === "Send Money Fee") {
-                        totalSendCharge += tx.amount || 0;
-                    }
-                });
+            
+            return db.collection('users').doc(doc.id).collection('transactions')
+                .where("description", "==", "Send Money Fee").get().then(txSnapshot => {
+                    txSnapshot.forEach(txDoc => totalSendCharge += txDoc.data().amount || 0);
             });
-            promises.push(txPromise);
         });
-        await Promise.all(promises);
-        document.getElementById('total-users').textContent = totalUsers;
-        document.getElementById('kyc-verified-users').textContent = kycVerifiedUsers;
+
+        await Promise.all(feePromises);
+        
+        document.getElementById('total-users').textContent = counts.users;
+        document.getElementById('total-merchants').textContent = counts.merchants;
+        document.getElementById('total-agents').textContent = counts.agents;
+        document.getElementById('kyc-verified-users').textContent = counts.kyc;
         document.getElementById('total-user-balance').textContent = `$${totalBalance.toFixed(2)}`;
         document.getElementById('total-send-charge').textContent = `$${totalSendCharge.toFixed(2)}`;
     }
 
     // --- All Users Logic ---
     async function loadAllUsers() {
-        const usersTableBody = document.querySelector('#users-table tbody');
-        usersTableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Loading users...</td></tr>';
-        const snapshot = await db.collection('users').get();
+        const snapshot = await db.collection('users').orderBy('name').get();
         allUsersCache = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         renderUsersTable(allUsersCache);
     }
     
     function renderUsersTable(users) {
-        const usersTableBody = document.querySelector('#users-table tbody');
-        usersTableBody.innerHTML = '';
-        if (users.length === 0) {
-            usersTableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No users found.</td></tr>';
-            return;
-        }
+        const tbody = document.querySelector('#users-table tbody');
+        tbody.innerHTML = users.length === 0 ? '<tr><td colspan="7" style="text-align:center;">No users found.</td></tr>' : '';
         users.forEach(user => {
             const tr = document.createElement('tr');
+            const type = user.userType || 'user';
             const safeUserName = user.name.replace(/'/g, "\\'").replace(/"/g, "&quot;");
             tr.innerHTML = `
                 <td>${user.name}</td>
                 <td>${user.userId}</td>
+                <td><span class="badge badge-${type}">${type.charAt(0).toUpperCase() + type.slice(1)}</span></td>
                 <td>${user.email}</td>
                 <td>$${(user.balance || 0).toFixed(2)}</td>
                 <td><span class="${user.isKycVerified ? 'status-verified' : 'status-not-verified'}">${user.isKycVerified ? 'Verified' : 'Not Verified'}</span></td>
                 <td class="action-btns">
-                    <button class="btn btn-sm btn-info" onclick="openTransactionsModal('${user.id}', '${safeUserName}')">View History</button>
-                    <button class="btn btn-sm" onclick="openEditBalanceModal('${user.id}', ${user.balance || 0})">Edit Balance</button>
-                    ${!user.isKycVerified ? `<button class="btn btn-sm btn-secondary" onclick="verifyKyc('${user.id}')">Verify KYC</button>` : ''}
+                    <button class="btn btn-sm btn-info" onclick="openTransactionsModal('${user.id}', '${safeUserName}')">History</button>
+                    <button class="btn btn-sm" onclick="openEditBalanceModal('${user.id}', ${user.balance || 0})">Balance</button>
+                    ${!user.isKycVerified ? `<button class="btn btn-sm btn-secondary" onclick="verifyKyc('${user.id}')">Verify</button>` : ''}
                 </td>
             `;
-            usersTableBody.appendChild(tr);
+            tbody.appendChild(tr);
         });
     }
 
     document.getElementById('user-search').addEventListener('input', e => {
-        const searchTerm = e.target.value.toLowerCase();
-        const filteredUsers = allUsersCache.filter(user => 
-            user.name.toLowerCase().includes(searchTerm) ||
-            user.email.toLowerCase().includes(searchTerm) ||
-            user.userId.toLowerCase().includes(searchTerm)
+        const term = e.target.value.toLowerCase();
+        const filtered = allUsersCache.filter(u => 
+            u.name.toLowerCase().includes(term) || u.email.toLowerCase().includes(term) || u.userId.toLowerCase().includes(term)
         );
-        renderUsersTable(filteredUsers);
+        renderUsersTable(filtered);
     });
 
     async function verifyKyc(userId) {
-        if (confirm("Are you sure you want to manually verify this user's KYC?")) {
+        if (confirm("Manually verify this user's KYC?")) {
             await db.collection('users').doc(userId).update({ isKycVerified: true });
-            alert("User KYC verified successfully!");
-            loadAllUsers();
-            loadDashboardData();
+            alert("User KYC verified!");
+            initializeAdminPanel();
         }
     }
 
     // --- Modal Logic ---
+    function openModal(modalId) { document.getElementById(modalId).style.display = 'flex'; }
+    function closeModal(modalId) { document.getElementById(modalId).style.display = 'none'; }
+    window.onclick = (e) => { if (e.target.classList.contains('modal')) e.target.style.display = 'none'; };
+
+    // Create User Modal
+    document.getElementById('create-user-btn').addEventListener('click', () => openModal('create-user-modal'));
+    document.getElementById('create-user-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const userType = document.getElementById('user-type').value;
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        
+        const prefixMap = { user: 'WMT', merchant: 'PWMT', agent: 'AWMT' };
+        const newUserId = `${prefixMap[userType]}${Date.now() % 100000 + Math.floor(Math.random() * 1000)}`;
+        
+        const userData = {
+            userId: newUserId,
+            userType: userType,
+            name: document.getElementById('full-name').value,
+            email: email,
+            dob: document.getElementById('dob').value,
+            gender: document.getElementById('gender').value,
+            balance: 0.00,
+            profileImg: 'https://res.cloudinary.com/dntvrm1wn/image/upload/v1625151899/avatar_ml_default.png',
+            isKycVerified: false,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        try {
+            await db.collection('users').add(userData); // We just add to Firestore
+            alert(`SUCCESS: User data for ${email} created in Firestore with ID ${newUserId}.\n\nIMPORTANT: You must now go to the Firebase Console -> Authentication -> Add User and manually create a user with the email '${email}' and password '${password}'.`);
+            closeModal('create-user-modal');
+            e.target.reset();
+            initializeAdminPanel();
+        } catch (error) {
+            alert(`Error creating user data: ${error.message}`);
+        }
+    });
+
+    // Edit Balance Modal
     function openEditBalanceModal(userId, currentBalance) {
         document.getElementById('edit-user-id').value = userId;
         document.getElementById('new-balance').value = currentBalance.toFixed(2);
-        document.getElementById('edit-balance-modal').style.display = 'flex';
+        openModal('edit-balance-modal');
     }
-    
-    function closeModal(modalId) {
-        document.getElementById(modalId).style.display = 'none';
-    }
-
     document.getElementById('edit-balance-form').addEventListener('submit', async e => {
         e.preventDefault();
-        const userId = document.getElementById('edit-user-id').value;
-        const newBalance = parseFloat(document.getElementById('new-balance').value);
-        await db.collection('users').doc(userId).update({ balance: newBalance });
-        alert("Balance updated successfully!");
+        await db.collection('users').doc(document.getElementById('edit-user-id').value).update({ balance: parseFloat(document.getElementById('new-balance').value) });
+        alert("Balance updated!");
         closeModal('edit-balance-modal');
-        loadAllUsers();
-        loadDashboardData();
-    });
-    
-    // --- NEW: Close modal when clicking outside of it ---
-    window.onclick = function(event) {
-        const transactionsModal = document.getElementById('transactions-modal');
-        const balanceModal = document.getElementById('edit-balance-modal');
-        if (event.target == transactionsModal) {
-            closeModal('transactions-modal');
-        }
-        if (event.target == balanceModal) {
-            closeModal('edit-balance-modal');
-        }
-    }
-
-    // --- Redeem Code Logic ---
-    document.getElementById('redeem-code-form').addEventListener('submit', async e => {
-        e.preventDefault();
-        const amount = parseFloat(document.getElementById('redeem-amount').value);
-        const password = document.getElementById('redeem-password').value;
-        const expiryDate = document.getElementById('redeem-expiry').value;
-        const code = `WMT-${Math.random().toString(36).substr(2, 8).toUpperCase()}`;
-        await db.collection('redeem_codes').add({
-            code, amount, password,
-            expiryDate: firebase.firestore.Timestamp.fromDate(new Date(expiryDate)),
-            isUsed: false
-        });
-        alert(`Code generated: ${code}`);
-        e.target.reset();
-        loadRedeemCodes();
+        initializeAdminPanel();
     });
 
-    async function loadRedeemCodes() {
-        const tableBody = document.querySelector('#redeem-codes-table tbody');
-        tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Loading codes...</td></tr>';
+    // Transactions Modal
+    async function openTransactionsModal(userId, userName) {
+        document.getElementById('transactions-modal-title').textContent = `History for ${userName}`;
+        const tbody = document.getElementById('user-transactions-tbody');
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading...</td></tr>';
+        openModal('transactions-modal');
         
-        try {
-            const snapshot = await db.collection('redeem_codes').orderBy('expiryDate', 'desc').get();
-            if (snapshot.empty) {
-                tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No active redeem codes found.</td></tr>';
-                return;
-            }
-            
-            tableBody.innerHTML = '';
-            snapshot.forEach(doc => {
-                const code = doc.data();
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${code.code}</td>
-                    <td>$${code.amount.toFixed(2)}</td>
-                    <td>${code.password}</td>
-                    <td>${code.expiryDate.toDate().toLocaleDateString()}</td>
-                    <td>${code.isUsed ? 'Yes' : 'No'}</td>
-                    <td class="action-btns">
-                        <button class="btn btn-sm btn-danger" onclick="deleteRedeemCode('${doc.id}')">Delete</button>
-                    </td>
-                `;
-                tableBody.appendChild(tr);
-            });
-        } catch (error) {
-            console.error("Error loading redeem codes:", error);
-            tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Failed to load codes.</td></tr>';
-        }
+        const snapshot = await db.collection('users').doc(userId).collection('transactions').orderBy('date', 'desc').limit(100).get();
+        tbody.innerHTML = snapshot.empty ? '<tr><td colspan="5" style="text-align:center;">No transactions found.</td></tr>' : '';
+        snapshot.forEach(doc => {
+            const tx = doc.data();
+            tbody.innerHTML += `
+                <tr>
+                    <td>${tx.date.toDate().toLocaleString()}</td>
+                    <td><span class="${tx.type === 'credit' ? 'status-verified' : 'status-not-verified'}">${tx.type}</span></td>
+                    <td>$${tx.amount.toFixed(2)}</td>
+                    <td>${tx.description}</td>
+                    <td>${tx.transactionId || doc.id}</td>
+                </tr>`;
+        });
     }
 
-    async function deleteRedeemCode(docId) {
-        if (confirm("Are you sure you want to delete this redeem code permanently?")) {
-            try {
-                await db.collection('redeem_codes').doc(docId).delete();
-                alert("Redeem code deleted successfully.");
-                loadRedeemCodes();
-            } catch (error) {
-                console.error("Error deleting redeem code:", error);
-                alert("Failed to delete redeem code.");
-            }
-        }
+    // --- Redeem/KYC Code Logic --- (Simplified for brevity)
+    async function loadAndRenderCodes(collection, tableId, renderFn) {
+        const tbody = document.querySelector(`#${tableId} tbody`);
+        tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;">Loading...</td></tr>`;
+        const snapshot = await db.collection(collection).get();
+        tbody.innerHTML = snapshot.empty ? `<tr><td colspan="10" style="text-align:center;">No codes found.</td></tr>` : '';
+        snapshot.forEach(doc => tbody.appendChild(renderFn(doc)));
     }
     
-    // --- KYC Code Logic ---
-    document.getElementById('generate-kyc-code-btn').addEventListener('click', async () => {
-        const newCode = `WMTKYC-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
-        try {
-            await db.collection('kyc_codes').add({
-                code: newCode,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                isUsed: false
-            });
-            alert(`New KYC Code Generated: ${newCode}`);
-            loadKycCodes();
-        } catch (error) {
-            console.error("Error generating KYC code:", error);
-            alert("Failed to generate KYC code.");
-        }
-    });
+    // Redeem
+    document.getElementById('redeem-code-form').addEventListener('submit', async e => { /* ... same as before ... */ });
+    function loadRedeemCodes() { /* ... same as before ... */ }
+    async function deleteRedeemCode(docId) { /* ... same as before ... */ }
 
-    async function loadKycCodes() {
-       const tableBody = document.querySelector('#kyc-codes-table tbody');
-       tableBody.innerHTML = '<tr><td colspan="3" style="text-align:center;">Loading codes...</td></tr>';
-       
-       try {
-            const snapshot = await db.collection('kyc_codes').where('isUsed', '==', false).orderBy('createdAt', 'desc').get();
-            if (snapshot.empty) {
-                tableBody.innerHTML = '<tr><td colspan="3" style="text-align:center;">No unused KYC codes found.</td></tr>';
-                return;
-            }
-            
-            tableBody.innerHTML = '';
-            snapshot.forEach(doc => {
-                const kycCode = doc.data();
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${kycCode.code}</td>
-                    <td>${kycCode.createdAt ? kycCode.createdAt.toDate().toLocaleString() : 'Just now'}</td>
-                    <td class="action-btns">
-                        <button class="btn btn-sm btn-danger" onclick="deleteKycCode('${doc.id}')">Delete</button>
-                    </td>
-                `;
-                tableBody.appendChild(tr);
-            });
-       } catch (error) {
-            console.error("Error loading KYC codes:", error);
-            tableBody.innerHTML = '<tr><td colspan="3" style="text-align:center;">Failed to load KYC codes.</td></tr>';
-       }
-    }
+    // KYC
+    document.getElementById('generate-kyc-code-btn').addEventListener('click', async () => { /* ... same as before ... */ });
+    function loadKycCodes() { /* ... same as before ... */ }
+    async function deleteKycCode(docId) { /* ... same as before ... */ }
+    
+    // (Re-pasting the shorter versions to avoid code duplication issues)
+    document.getElementById('redeem-code-form').addEventListener('submit', async e => { e.preventDefault(); const code = `WMT-${Math.random().toString(36).substr(2, 8).toUpperCase()}`; await db.collection('redeem_codes').add({ code, amount: parseFloat(document.getElementById('redeem-amount').value), password: document.getElementById('redeem-password').value, expiryDate: firebase.firestore.Timestamp.fromDate(new Date(document.getElementById('redeem-expiry').value)), isUsed: false }); alert(`Code created: ${code}`); e.target.reset(); loadRedeemCodes(); });
+    async function loadRedeemCodes() { const snapshot = await db.collection('redeem_codes').orderBy('expiryDate', 'desc').get(); const tbody = document.querySelector('#redeem-codes-table tbody'); tbody.innerHTML = ''; snapshot.forEach(doc => { const code = doc.data(); tbody.innerHTML += `<tr><td>${code.code}</td><td>$${code.amount.toFixed(2)}</td><td>${code.password}</td><td>${code.expiryDate.toDate().toLocaleDateString()}</td><td>${code.isUsed ? 'Yes' : 'No'}</td><td><button class="btn btn-sm btn-danger" onclick="deleteRedeemCode('${doc.id}')">Delete</button></td></tr>`; }); }
+    async function deleteRedeemCode(docId) { if(confirm('Delete this code?')) { await db.collection('redeem_codes').doc(docId).delete(); alert('Deleted!'); loadRedeemCodes(); } }
+    document.getElementById('generate-kyc-code-btn').addEventListener('click', async () => { const newCode = `WMTKYC-${Math.random().toString(36).substr(2, 6).toUpperCase()}`; await db.collection('kyc_codes').add({ code: newCode, createdAt: firebase.firestore.FieldValue.serverTimestamp(), isUsed: false }); alert(`Code Generated: ${newCode}`); loadKycCodes(); });
+    async function loadKycCodes() { const snapshot = await db.collection('kyc_codes').where('isUsed', '==', false).orderBy('createdAt', 'desc').get(); const tbody = document.querySelector('#kyc-codes-table tbody'); tbody.innerHTML = ''; snapshot.forEach(doc => { const code = doc.data(); tbody.innerHTML += `<tr><td>${code.code}</td><td>${code.createdAt ? code.createdAt.toDate().toLocaleString() : 'N/A'}</td><td><button class="btn btn-sm btn-danger" onclick="deleteKycCode('${doc.id}')">Delete</button></td></tr>`; }); }
+    async function deleteKycCode(docId) { if(confirm('Delete this code?')) { await db.collection('kyc_codes').doc(docId).delete(); alert('Deleted!'); loadKycCodes(); } }
 
-    async function deleteKycCode(docId) {
-       if (confirm("Are you sure you want to delete this KYC code?")) {
-            try {
-                await db.collection('kyc_codes').doc(docId).delete();
-                alert("KYC code deleted successfully.");
-                loadKycCodes();
-            } catch (error) {
-                console.error("Error deleting KYC code:", error);
-                alert("Failed to delete KYC code.");
-            }
-        }
-    }
 
     // --- Settings Logic ---
     async function loadSettings() {
-        // Load Fees
         const feesDoc = await db.collection('settings').doc('fees').get();
         if (feesDoc.exists) {
             const fees = feesDoc.data();
-            document.getElementById('send-money-fee').value = fees.sendMoneyFixedFee || '';
-            document.getElementById('money-out-fee').value = (fees.moneyOutPercentageFee || 0) * 100;
+            if (fees.user) {
+                document.getElementById('user-send-money-fee').value = fees.user.sendMoneyFixedFee || '';
+                document.getElementById('user-money-out-fee').value = (fees.user.moneyOutPercentageFee || 0) * 100;
+            }
+            if (fees.merchant) {
+                document.getElementById('merchant-send-money-fee').value = fees.merchant.sendMoneyFixedFee || '';
+                document.getElementById('merchant-money-out-fee').value = (fees.merchant.moneyOutPercentageFee || 0) * 100;
+            }
         }
-
-        // Load Service Status
         const statusDoc = await db.collection('settings').doc('status').get();
-        if (statusDoc.exists) {
-            const status = statusDoc.data();
-            document.getElementById('service-status-toggle').checked = status.servicesEnabled === true;
-        } else {
-            document.getElementById('service-status-toggle').checked = true;
-        }
+        document.getElementById('service-status-toggle').checked = statusDoc.exists() ? statusDoc.data().servicesEnabled === true : true;
     }
 
     document.getElementById('fees-form').addEventListener('submit', async e => {
         e.preventDefault();
-        const sendFee = parseFloat(document.getElementById('send-money-fee').value);
-        const moneyOutFeePercent = parseFloat(document.getElementById('money-out-fee').value);
-
-        if (isNaN(sendFee) || isNaN(moneyOutFeePercent)) {
-            alert("Please enter valid numbers for the fees.");
-            return;
-        }
-        
-        const moneyOutFeeDecimal = moneyOutFeePercent / 100;
-
-        await db.collection('settings').doc('fees').set({
-            sendMoneyFixedFee: sendFee,
-            moneyOutPercentageFee: moneyOutFeeDecimal
-        }, { merge: true });
-
-        alert("Service charges updated successfully!");
+        const feeData = {
+            user: {
+                sendMoneyFixedFee: parseFloat(document.getElementById('user-send-money-fee').value),
+                moneyOutPercentageFee: parseFloat(document.getElementById('user-money-out-fee').value) / 100
+            },
+            merchant: {
+                sendMoneyFixedFee: parseFloat(document.getElementById('merchant-send-money-fee').value),
+                moneyOutPercentageFee: parseFloat(document.getElementById('merchant-money-out-fee').value) / 100
+            }
+        };
+        await db.collection('settings').doc('fees').set(feeData, { merge: true });
+        alert("Service charges updated!");
     });
     
     document.getElementById('service-status-toggle').addEventListener('change', async e => {
-        const isEnabled = e.target.checked;
-        await db.collection('settings').doc('status').set({
-            servicesEnabled: isEnabled
-        }, { merge: true });
-        
-        alert(`All services are now ${isEnabled ? 'ENABLED' : 'DISABLED'}.`);
+        await db.collection('settings').doc('status').set({ servicesEnabled: e.target.checked }, { merge: true });
+        alert(`Services are now ${e.target.checked ? 'ENABLED' : 'DISABLED'}.`);
     });
-    
-    // --- User Transaction History Modal Logic ---
-    async function openTransactionsModal(userId, userName) {
-        const modal = document.getElementById('transactions-modal');
-        const title = document.getElementById('transactions-modal-title');
-        const tbody = document.getElementById('user-transactions-tbody');
-        
-        title.textContent = `Transaction History for ${userName}`;
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading history...</td></tr>';
-        modal.style.display = 'flex';
-        
-        try {
-            const snapshot = await db.collection('users').doc(userId).collection('transactions')
-                .orderBy('date', 'desc').limit(100).get(); // Limit increased slightly if needed
-            
-            if (snapshot.empty) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No transactions found for this user.</td></tr>';
-                return;
-            }
-            
-            tbody.innerHTML = '';
-            snapshot.forEach(doc => {
-                const tx = doc.data();
-                const tr = document.createElement('tr');
-                const txTypeClass = tx.type === 'credit' ? 'status-verified' : 'status-not-verified';
-                
-                tr.innerHTML = `
-                    <td>${tx.date.toDate().toLocaleString()}</td>
-                    <td><span class="${txTypeClass}">${tx.type.charAt(0).toUpperCase() + tx.type.slice(1)}</span></td>
-                    <td>$${tx.amount.toFixed(2)}</td>
-                    <td>${tx.description}</td>
-                    <td>${tx.transactionId || doc.id}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-        } catch (error) {
-            console.error("Error fetching user transactions:", error);
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Failed to load transaction history.</td></tr>';
-        }
-    }
 
     </script>
 </body>
-</html>```
-
-এই পরিবর্তনের পর আপনার অ্যাডমিন প্যানেলটি ব্যবহার করতে আরও সহজ এবং সুবিধাজনক মনে হবে।
+</html>
