@@ -82,12 +82,12 @@
             </div>
             <div class="page" id="users-content">
                 <div class="card">
-                    <input type="text" id="user-search" class="form-control" placeholder="Search...">
+                    <input type="text" id="user-search" class="form-control" placeholder="Search by name, email, or ID...">
                     <table id="users-table"><thead><tr><th>Name</th><th>User ID</th><th>Type</th><th>Email</th><th>Balance</th><th>KYC</th><th>Actions</th></tr></thead><tbody></tbody></table>
                 </div>
             </div>
             <div class="page" id="kyc-content"><div class="card"><button id="generate-kyc-code-btn" class="btn">Generate KYC Code</button><table id="kyc-codes-table"><thead><tr><th>Code</th><th>Created</th><th>Action</th></tr></thead><tbody></tbody></table></div></div>
-            <div class="page" id="redeem-content"><div class="card"><form id="redeem-code-form"><input type="number" id="redeem-amount" placeholder="Amount" class="form-control"><input type="text" id="redeem-password" placeholder="Password" class="form-control"><input type="date" id="redeem-expiry" class="form-control"><button type="submit" class="btn">Generate</button></form><table id="redeem-codes-table"><thead><tr><th>Code</th><th>Amount</th><th>Password</th><th>Expiry</th><th>Used</th><th>Action</th></tr></thead><tbody></tbody></table></div></div>
+            <div class="page" id="redeem-content"><div class="card"><form id="redeem-code-form"><input type="number" id="redeem-amount" placeholder="Amount" class="form-control" style="margin-bottom:10px;"><input type="text" id="redeem-password" placeholder="Password" class="form-control" style="margin-bottom:10px;"><input type="date" id="redeem-expiry" class="form-control" style="margin-bottom:10px;"><button type="submit" class="btn">Generate</button></form><table id="redeem-codes-table"><thead><tr><th>Code</th><th>Amount</th><th>Password</th><th>Expiry</th><th>Used</th><th>Action</th></tr></thead><tbody></tbody></table></div></div>
             
             <div class="page" id="settings-content">
                 <div class="card">
@@ -122,11 +122,19 @@
 
     <div class="modal" id="edit-user-modal"><div class="modal-content"><div class="modal-header"><h3>Edit User</h3><span class="modal-close" onclick="closeModal('edit-user-modal')">&times;</span></div><form id="edit-user-form"><input type="hidden" id="edit-user-uid"><div class="form-group"><label>Name</label><input type="text" id="edit-full-name" class="form-control"></div><div class="form-group"><label>Email</label><input type="email" id="edit-email" class="form-control" readonly></div><div class="form-group"><label>DOB</label><input type="date" id="edit-dob" class="form-control"></div><div class="form-group"><label>Gender</label><select id="edit-gender" class="form-control"><option value="male">Male</option><option value="female">Female</option><option value="other">Other</option></select></div><button type="submit" class="btn">Save</button></form></div></div>
     <div class="modal" id="edit-balance-modal"><div class="modal-content"><div class="modal-header"><h3>Edit Balance</h3><span class="modal-close" onclick="closeModal('edit-balance-modal')">&times;</span></div><form id="edit-balance-form"><input type="hidden" id="edit-balance-user-uid"><div class="form-group"><label>New Balance</label><input type="number" step="0.01" id="new-balance" class="form-control"></div><button type="submit" class="btn">Update</button></form></div></div>
-    <div class="modal" id="transactions-modal"><div class="modal-content"><div class="modal-header"><h3 id="transactions-modal-title">History</h3><span class="modal-close" onclick="closeModal('transactions-modal')">&times;</span></div><table id="user-transactions-table"><thead><tr><th>Date</th><th>Type</th><th>Amount</th><th>Desc</th><th>ID</th></tr></thead><tbody id="user-transactions-tbody"></tbody></table></div></div>
+    <div class="modal" id="transactions-modal"><div class="modal-content"><div class="modal-header"><h3 id="transactions-modal-title">History</h3><span class="modal-close" onclick="closeModal('transactions-modal')">&times;</span></div><table id="user-transactions-table" style="max-height: 60vh; overflow-y: auto; display: block;"><thead><tr><th>Date</th><th>Type</th><th>Amount</th><th>Desc</th><th>ID</th></tr></thead><tbody id="user-transactions-tbody"></tbody></table></div></div>
 
     <script>
-    // --- Firebase Config ---
-    const firebaseConfig = { /* ... Your config ... */ };
+    // --- Firebase Config: অনুগ্রহ করে এখানে আপনার নিজের কনফিগারেশন পেস্ট করুন ---
+    const firebaseConfig = {
+      apiKey: "AIzaSyAzU36v8dZ1jEMh1qxEAnNxDRAmoRCVbwY",
+      authDomain: "wmt-services.firebaseapp.com",
+      databaseURL: "https://wmt-services-default-rtdb.firebaseio.com",
+      projectId: "wmt-services",
+      storageBucket: "wmt-services.firebasestorage.app",
+      messagingSenderId: "935651931226",
+      appId: "1:935651931226:web:5c412bd299f215c14f5463"
+    };
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
@@ -141,7 +149,12 @@
             const isAdmin = await checkAdminStatus(user);
             loginUI.style.display = 'none';
             panelUI.style.display = isAdmin ? 'flex' : 'none';
-            if (isAdmin) initializeAdminPanel(); else auth.signOut();
+            if (isAdmin) {
+                initializeAdminPanel();
+            } else {
+                alert("You are not authorized.");
+                auth.signOut();
+            }
         } else {
             loginUI.style.display = 'flex';
             panelUI.style.display = 'none';
@@ -152,7 +165,10 @@
         try {
             const adminDoc = await db.collection('admins').doc('admin_uids').get();
             return adminDoc.exists && adminDoc.data().uids.includes(user.uid);
-        } catch (e) { return false; }
+        } catch (e) { 
+            console.error("Admin check failed:", e);
+            return false; 
+        }
     }
 
     // --- Initialization ---
@@ -169,7 +185,7 @@
     function setupEventListeners() {
         document.getElementById('login-form').addEventListener('submit', e => { e.preventDefault(); auth.signInWithEmailAndPassword(document.getElementById('login-email').value, document.getElementById('login-password').value).catch(err => alert(err.message)); });
         document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());
-        document.querySelectorAll('.sidebar-link').forEach(link => link.addEventListener('click', e => { if(link.id !== 'logout-btn') { e.preventDefault(); showPage(link.dataset.page); }}));
+        document.querySelectorAll('.sidebar-link').forEach(link => { if(link.id !== 'logout-btn') { link.addEventListener('click', e => { e.preventDefault(); showPage(link.dataset.page); }); }});
         document.getElementById('user-search').addEventListener('input', e => { const term = e.target.value.toLowerCase(); renderUsersTable(allUsersCache.filter(u => u.name.toLowerCase().includes(term) || u.email.toLowerCase().includes(term) || u.userId.toLowerCase().includes(term))); });
         document.getElementById('edit-user-form').addEventListener('submit', handleEditUser);
         document.getElementById('edit-balance-form').addEventListener('submit', handleEditBalance);
@@ -224,11 +240,11 @@
             const userJson = JSON.stringify(user).replace(/'/g, "&apos;");
             tbody.innerHTML += `<tr>
                 <td>${user.name}</td><td>${user.userId}</td><td>${user.userType || 'user'}</td><td>${user.email}</td>
-                <td>$${(user.balance || 0).toFixed(2)}</td><td>${user.isKycVerified ? 'Yes' : 'No'}</td>
+                <td>$${(user.balance || 0).toFixed(2)}</td><td>${user.isKycVerified ? 'Verified' : 'Not Verified'}</td>
                 <td>
-                    <button onclick="openTransactionsModal('${user.id}', '${user.name.replace(/'/g, "\\'")}')">History</button>
-                    <button onclick="openEditBalanceModal('${user.id}', ${user.balance || 0})">Balance</button>
-                    <button onclick='openEditUserModal(${userJson})'>Edit</button>
+                    <button class="btn" style="font-size:12px; padding:5px 8px;" onclick="openTransactionsModal('${user.id}', '${user.name.replace(/'/g, "\\'")}')">History</button>
+                    <button class="btn" style="font-size:12px; padding:5px 8px;" onclick="openEditBalanceModal('${user.id}', ${user.balance || 0})">Balance</button>
+                    <button class="btn" style="font-size:12px; padding:5px 8px;" onclick='openEditUserModal(${userJson})'>Edit</button>
                 </td></tr>`;
         });
     }
@@ -282,16 +298,16 @@
         const tbody = document.getElementById('user-transactions-tbody');
         tbody.innerHTML = `<tr><td colspan="5">Loading...</td></tr>`;
         openModal('transactions-modal');
-        const snapshot = await db.collection('users').doc(uid).collection('transactions').orderBy('date', 'desc').get();
+        const snapshot = await db.collection('users').doc(uid).collection('transactions').orderBy('date', 'desc').limit(50).get();
         tbody.innerHTML = snapshot.empty ? `<tr><td colspan="5">No transactions</td></tr>` : '';
         snapshot.forEach(doc => { const tx = doc.data(); tbody.innerHTML += `<tr><td>${tx.date.toDate().toLocaleDateString()}</td><td>${tx.type}</td><td>$${tx.amount.toFixed(2)}</td><td>${tx.description}</td><td>${tx.transactionId?.substring(0,8) || ''}...</td></tr>`; });
     }
 
     // --- KYC & Redeem ---
-    async function loadKycCodes() { /* ... full function ... */ }
-    async function handleGenerateKyc() { /* ... full function ... */ }
-    async function loadRedeemCodes() { /* ... full function ... */ }
-    async function handleGenerateRedeem(e) { /* ... full function ... */ }
+    async function handleGenerateKyc() { const code = `WMTKYC-${Date.now().toString().slice(-6)}`; await db.collection('kyc_codes').add({ code, createdAt: firebase.firestore.FieldValue.serverTimestamp(), isUsed: false }); alert(`Generated: ${code}`); loadKycCodes(); }
+    async function loadKycCodes() { const snap = await db.collection('kyc_codes').where('isUsed', '==', false).orderBy('createdAt', 'desc').get(); const tbody = document.querySelector('#kyc-codes-table tbody'); tbody.innerHTML = ''; snap.forEach(doc => { const d = doc.data(); tbody.innerHTML += `<tr><td>${d.code}</td><td>${d.createdAt.toDate().toLocaleDateString()}</td><td><button class="btn" onclick="db.collection('kyc_codes').doc('${doc.id}').delete().then(loadKycCodes)">Delete</button></td></tr>`; }); }
+    async function handleGenerateRedeem(e) { e.preventDefault(); const form = e.target; await db.collection('redeem_codes').add({ code: `WMTR-${Date.now().toString().slice(-8)}`, amount: parseFloat(form.querySelector('#redeem-amount').value), password: form.querySelector('#redeem-password').value, expiryDate: firebase.firestore.Timestamp.fromDate(new Date(form.querySelector('#redeem-expiry').value)), isUsed: false }); alert('Redeem Code Generated'); loadRedeemCodes(); form.reset(); }
+    async function loadRedeemCodes() { const snap = await db.collection('redeem_codes').orderBy('expiryDate', 'desc').get(); const tbody = document.querySelector('#redeem-codes-table tbody'); tbody.innerHTML = ''; snap.forEach(doc => { const d = doc.data(); tbody.innerHTML += `<tr><td>${d.code}</td><td>$${d.amount}</td><td>${d.password}</td><td>${d.expiryDate.toDate().toLocaleDateString()}</td><td>${d.isUsed ? 'Yes' : 'No'}</td><td><button class="btn" onclick="db.collection('redeem_codes').doc('${doc.id}').delete().then(loadRedeemCodes)">Delete</button></td></tr>`; }); }
 
     // --- Settings ---
     async function loadSettings() {
@@ -323,12 +339,6 @@
         alert(`${key.replace('ServicesEnabled', '')} services are now ${value ? 'ON' : 'OFF'}`);
     }
     
-    // Simplified KYC/Redeem for brevity, replace with full functions if needed
-    async function handleGenerateKyc() { const code = `WMTKYC-${Date.now().toString().slice(-6)}`; await db.collection('kyc_codes').add({ code, createdAt: new Date(), isUsed: false }); alert(`Generated: ${code}`); loadKycCodes(); }
-    async function loadKycCodes() { const snap = await db.collection('kyc_codes').where('isUsed', '==', false).get(); const tbody = document.querySelector('#kyc-codes-table tbody'); tbody.innerHTML = ''; snap.forEach(doc => tbody.innerHTML += `<tr><td>${doc.data().code}</td><td>${doc.data().createdAt.toDate().toLocaleDateString()}</td><td><button onclick="db.collection('kyc_codes').doc('${doc.id}').delete().then(loadKycCodes)">Delete</button></td></tr>`); }
-    async function handleGenerateRedeem(e) { e.preventDefault(); const form = e.target; await db.collection('redeem_codes').add({ code: `WMTR-${Date.now().toString().slice(-8)}`, amount: parseFloat(form.querySelector('#redeem-amount').value), password: form.querySelector('#redeem-password').value, expiryDate: new Date(form.querySelector('#redeem-expiry').value), isUsed: false }); alert('Redeem Code Generated'); loadRedeemCodes(); }
-    async function loadRedeemCodes() { const snap = await db.collection('redeem_codes').get(); const tbody = document.querySelector('#redeem-codes-table tbody'); tbody.innerHTML = ''; snap.forEach(doc => { const d = doc.data(); tbody.innerHTML += `<tr><td>${d.code}</td><td>$${d.amount}</td><td>${d.password}</td><td>${d.expiryDate.toDate().toLocaleDateString()}</td><td>${d.isUsed}</td><td><button onclick="db.collection('redeem_codes').doc('${doc.id}').delete().then(loadRedeemCodes)">Delete</button></td></tr>`; }); }
-
     </script>
 </body>
 </html>
