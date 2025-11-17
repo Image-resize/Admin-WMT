@@ -206,8 +206,8 @@
         .btn:hover { background: #1669d6; }
         .btn-danger { background: var(--danger); }
         .btn-danger:hover { background: #d33223; }
-        .btn-secondary { background: var(--secondary); }
-        .btn-secondary:hover { background: #2d9355; }
+        .btn-secondary { background: var(--gray); }
+        .btn-secondary:hover { background: #4a4d50; }
         .btn-info { background: var(--info); }
         .btn-info:hover { background: #039be5; }
         
@@ -266,7 +266,7 @@
             padding: 30px;
             border-radius: 10px;
             width: 90%;
-            max-width: 700px; /* Increased max-width for transactions */
+            max-width: 800px; 
         }
         
         .modal-content.modal-sm {
@@ -278,13 +278,33 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
         }
 
         .modal-close {
             cursor: pointer;
             font-size: 24px;
+            color: var(--gray);
+        }
+        .modal-close:hover {
+            color: var(--dark);
         }
         
+        /* ---- NEW: Style for scrollable table in modal ---- */
+        .modal .table-container {
+            max-height: 50vh; /* Set max height to 50% of viewport height */
+            overflow-y: auto; /* Add vertical scrollbar when content overflows */
+        }
+        
+        /* ---- NEW: Style for modal footer ---- */
+        .modal-footer {
+            margin-top: 25px;
+            text-align: right;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+
         /* Service Status Toggle Switch */
         .service-status-container {
             display: flex;
@@ -458,7 +478,7 @@
                 </div>
             </div>
             
-            <!-- NEW: Settings Page -->
+            <!-- Settings Page -->
             <div class="page" id="settings-content">
                 <div class="page-header"><h1>Settings</h1></div>
                 
@@ -509,16 +529,21 @@
                 </div>
                 <button type="submit" class="btn">Update Balance</button>
             </form>
+            <!-- NEW: Modal Footer with close button -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('edit-balance-modal')">Close</button>
+            </div>
         </div>
     </div>
     
-    <!-- NEW: User Transactions Modal -->
+    <!-- User Transactions Modal -->
     <div class="modal" id="transactions-modal">
         <div class="modal-content">
             <div class="modal-header">
                 <h3 id="transactions-modal-title">Transaction History</h3>
                 <span class="modal-close" onclick="closeModal('transactions-modal')">&times;</span>
             </div>
+            <!-- UPDATED: table container is now inside the modal body -->
             <div class="table-container">
                 <table id="user-transactions-table">
                     <thead>
@@ -534,6 +559,10 @@
                         <!-- Transactions will be loaded here -->
                     </tbody>
                 </table>
+            </div>
+            <!-- NEW: Modal Footer with close button -->
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('transactions-modal')">Close</button>
             </div>
         </div>
     </div>
@@ -577,7 +606,7 @@
                 loadAllUsers();
                 loadRedeemCodes();
                 loadKycCodes();
-                loadSettings(); // Load new settings data
+                loadSettings(); 
             } else {
                 alert("You are not authorized to access this panel.");
                 auth.signOut();
@@ -675,7 +704,6 @@
         }
         users.forEach(user => {
             const tr = document.createElement('tr');
-            // Sanitize user.name for the onclick attribute
             const safeUserName = user.name.replace(/'/g, "\\'").replace(/"/g, "&quot;");
             tr.innerHTML = `
                 <td>${user.name}</td>
@@ -733,6 +761,18 @@
         loadAllUsers();
         loadDashboardData();
     });
+    
+    // --- NEW: Close modal when clicking outside of it ---
+    window.onclick = function(event) {
+        const transactionsModal = document.getElementById('transactions-modal');
+        const balanceModal = document.getElementById('edit-balance-modal');
+        if (event.target == transactionsModal) {
+            closeModal('transactions-modal');
+        }
+        if (event.target == balanceModal) {
+            closeModal('edit-balance-modal');
+        }
+    }
 
     // --- Redeem Code Logic ---
     document.getElementById('redeem-code-form').addEventListener('submit', async e => {
@@ -752,34 +792,118 @@
     });
 
     async function loadRedeemCodes() {
-        // ... (existing code is correct, no changes needed)
+        const tableBody = document.querySelector('#redeem-codes-table tbody');
+        tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Loading codes...</td></tr>';
+        
+        try {
+            const snapshot = await db.collection('redeem_codes').orderBy('expiryDate', 'desc').get();
+            if (snapshot.empty) {
+                tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No active redeem codes found.</td></tr>';
+                return;
+            }
+            
+            tableBody.innerHTML = '';
+            snapshot.forEach(doc => {
+                const code = doc.data();
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${code.code}</td>
+                    <td>$${code.amount.toFixed(2)}</td>
+                    <td>${code.password}</td>
+                    <td>${code.expiryDate.toDate().toLocaleDateString()}</td>
+                    <td>${code.isUsed ? 'Yes' : 'No'}</td>
+                    <td class="action-btns">
+                        <button class="btn btn-sm btn-danger" onclick="deleteRedeemCode('${doc.id}')">Delete</button>
+                    </td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        } catch (error) {
+            console.error("Error loading redeem codes:", error);
+            tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Failed to load codes.</td></tr>';
+        }
     }
 
-    async function deleteRedeemCode(codeId) {
-        // ... (existing code is correct, no changes needed)
+    async function deleteRedeemCode(docId) {
+        if (confirm("Are you sure you want to delete this redeem code permanently?")) {
+            try {
+                await db.collection('redeem_codes').doc(docId).delete();
+                alert("Redeem code deleted successfully.");
+                loadRedeemCodes();
+            } catch (error) {
+                console.error("Error deleting redeem code:", error);
+                alert("Failed to delete redeem code.");
+            }
+        }
     }
     
     // --- KYC Code Logic ---
     document.getElementById('generate-kyc-code-btn').addEventListener('click', async () => {
-        // ... (existing code is correct, no changes needed)
+        const newCode = `WMTKYC-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+        try {
+            await db.collection('kyc_codes').add({
+                code: newCode,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                isUsed: false
+            });
+            alert(`New KYC Code Generated: ${newCode}`);
+            loadKycCodes();
+        } catch (error) {
+            console.error("Error generating KYC code:", error);
+            alert("Failed to generate KYC code.");
+        }
     });
 
     async function loadKycCodes() {
-       // ... (existing code is correct, no changes needed)
+       const tableBody = document.querySelector('#kyc-codes-table tbody');
+       tableBody.innerHTML = '<tr><td colspan="3" style="text-align:center;">Loading codes...</td></tr>';
+       
+       try {
+            const snapshot = await db.collection('kyc_codes').where('isUsed', '==', false).orderBy('createdAt', 'desc').get();
+            if (snapshot.empty) {
+                tableBody.innerHTML = '<tr><td colspan="3" style="text-align:center;">No unused KYC codes found.</td></tr>';
+                return;
+            }
+            
+            tableBody.innerHTML = '';
+            snapshot.forEach(doc => {
+                const kycCode = doc.data();
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${kycCode.code}</td>
+                    <td>${kycCode.createdAt ? kycCode.createdAt.toDate().toLocaleString() : 'Just now'}</td>
+                    <td class="action-btns">
+                        <button class="btn btn-sm btn-danger" onclick="deleteKycCode('${doc.id}')">Delete</button>
+                    </td>
+                `;
+                tableBody.appendChild(tr);
+            });
+       } catch (error) {
+            console.error("Error loading KYC codes:", error);
+            tableBody.innerHTML = '<tr><td colspan="3" style="text-align:center;">Failed to load KYC codes.</td></tr>';
+       }
     }
 
     async function deleteKycCode(docId) {
-       // ... (existing code is correct, no changes needed)
+       if (confirm("Are you sure you want to delete this KYC code?")) {
+            try {
+                await db.collection('kyc_codes').doc(docId).delete();
+                alert("KYC code deleted successfully.");
+                loadKycCodes();
+            } catch (error) {
+                console.error("Error deleting KYC code:", error);
+                alert("Failed to delete KYC code.");
+            }
+        }
     }
 
-    // --- NEW: Settings Logic ---
+    // --- Settings Logic ---
     async function loadSettings() {
         // Load Fees
         const feesDoc = await db.collection('settings').doc('fees').get();
         if (feesDoc.exists) {
             const fees = feesDoc.data();
             document.getElementById('send-money-fee').value = fees.sendMoneyFixedFee || '';
-            // Convert percentage from decimal (e.g., 0.01) to whole number (e.g., 1) for display
             document.getElementById('money-out-fee').value = (fees.moneyOutPercentageFee || 0) * 100;
         }
 
@@ -789,7 +913,6 @@
             const status = statusDoc.data();
             document.getElementById('service-status-toggle').checked = status.servicesEnabled === true;
         } else {
-             // Default to enabled if not set
             document.getElementById('service-status-toggle').checked = true;
         }
     }
@@ -804,7 +927,6 @@
             return;
         }
         
-        // Convert percentage to decimal for storage (e.g., 1% becomes 0.01)
         const moneyOutFeeDecimal = moneyOutFeePercent / 100;
 
         await db.collection('settings').doc('fees').set({
@@ -824,7 +946,7 @@
         alert(`All services are now ${isEnabled ? 'ENABLED' : 'DISABLED'}.`);
     });
     
-    // --- NEW: User Transaction History Modal Logic ---
+    // --- User Transaction History Modal Logic ---
     async function openTransactionsModal(userId, userName) {
         const modal = document.getElementById('transactions-modal');
         const title = document.getElementById('transactions-modal-title');
@@ -836,14 +958,14 @@
         
         try {
             const snapshot = await db.collection('users').doc(userId).collection('transactions')
-                .orderBy('date', 'desc').limit(50).get();
+                .orderBy('date', 'desc').limit(100).get(); // Limit increased slightly if needed
             
             if (snapshot.empty) {
                 tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No transactions found for this user.</td></tr>';
                 return;
             }
             
-            tbody.innerHTML = ''; // Clear loading message
+            tbody.innerHTML = '';
             snapshot.forEach(doc => {
                 const tx = doc.data();
                 const tr = document.createElement('tr');
@@ -866,4 +988,6 @@
 
     </script>
 </body>
-</html>
+</html>```
+
+এই পরিবর্তনের পর আপনার অ্যাডমিন প্যানেলটি ব্যবহার করতে আরও সহজ এবং সুবিধাজনক মনে হবে।
