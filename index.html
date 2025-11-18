@@ -310,7 +310,8 @@
             if(fees.merchant) { document.getElementById('merchant-send-money-fee').value = fees.merchant.sendMoneyFixedFee; document.getElementById('merchant-money-out-fee').value = (fees.merchant.moneyOutPercentageFee || 0) * 100; }
         }
         const statusDoc = await db.collection('settings').doc('status').get();
-        const status = statusDoc.exists() ? statusDoc.data() : {};
+        // Corrected line: .exists is a property, not a function .exists()
+        const status = statusDoc.exists ? statusDoc.data() : {};
         document.getElementById('maintenance-mode-toggle').checked = status.isMaintenanceModeEnabled === true;
     }
 
