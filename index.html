@@ -77,8 +77,11 @@
                     <div class="stat-card"><h3>Total Merchants</h3><p id="total-merchants">0</p></div>
                     <div class="stat-card"><h3>Total Agents</h3><p id="total-agents">0</p></div>
                     <div class="stat-card"><h3>KYC Verified</h3><p id="kyc-verified-users">0</p></div>
-                    <div class="stat-card"><h3>Total Balance</h3><p id="total-user-balance">$0.00</p></div>
-                    <div class="stat-card"><h3>Total Charges</h3><p id="total-service-charge">$0.00</p></div>
+                    <div class="stat-card"><h3>Total System Balance</h3><p id="total-user-balance">$0.00</p></div>
+                    <!-- UPDATE: Replaced 'Total Charges' with three specific charge cards -->
+                    <div class="stat-card"><h3>User Charges</h3><p id="total-user-charge">$0.00</p></div>
+                    <div class="stat-card"><h3>Merchant Charges</h3><p id="total-merchant-charge">$0.00</p></div>
+                    <div class="stat-card"><h3>Agent Charges</h3><p id="total-agent-charge">$0.00</p></div>
                 </div>
             </div>
             <div class="page" id="users-content">
@@ -230,11 +233,17 @@
     async function loadDashboardData() {
         const usersSnapshot = await db.collection('users').get();
         let counts = { users: 0, merchants: 0, agents: 0, kyc: 0 };
-        let totalBalance = 0, totalCharges = 0;
+        let totalBalance = 0;
         
-        // Use a for...of loop to handle async operations sequentially
+        // UPDATE: Initialize separate charge counters
+        let totalUserCharges = 0;
+        let totalMerchantCharges = 0;
+        let totalAgentCharges = 0;
+        
         for (const doc of usersSnapshot.docs) {
             const user = doc.data();
+            
+            // Count user types
             if (user.userType === 'merchant') counts.merchants++;
             else if (user.userType === 'agent') counts.agents++;
             else counts.users++;
@@ -245,20 +254,31 @@
             // Fetch transactions for each user
             const txSnapshot = await db.collection('users').doc(doc.id).collection('transactions').get();
             txSnapshot.forEach(txDoc => {
-                // *** FIX: Read the 'fee' field directly instead of checking the description ***
                 const txData = txDoc.data();
                 if (txData.fee && typeof txData.fee === 'number') {
-                    totalCharges += txData.fee;
+                    // UPDATE: Add fee to the correct counter based on userType
+                    if (user.userType === 'merchant') {
+                        totalMerchantCharges += txData.fee;
+                    } else if (user.userType === 'agent') {
+                        totalAgentCharges += txData.fee;
+                    } else { // Handles 'user' and any undefined userType
+                        totalUserCharges += txData.fee;
+                    }
                 }
             });
         }
         
+        // Update dashboard UI elements
         document.getElementById('total-users').textContent = counts.users;
         document.getElementById('total-merchants').textContent = counts.merchants;
         document.getElementById('total-agents').textContent = counts.agents;
         document.getElementById('kyc-verified-users').textContent = counts.kyc;
         document.getElementById('total-user-balance').textContent = `$${totalBalance.toFixed(2)}`;
-        document.getElementById('total-service-charge').textContent = `$${totalCharges.toFixed(2)}`;
+
+        // UPDATE: Update the new charge display elements
+        document.getElementById('total-user-charge').textContent = `$${totalUserCharges.toFixed(2)}`;
+        document.getElementById('total-merchant-charge').textContent = `$${totalMerchantCharges.toFixed(2)}`;
+        document.getElementById('total-agent-charge').textContent = `$${totalAgentCharges.toFixed(2)}`;
     }
 
 
