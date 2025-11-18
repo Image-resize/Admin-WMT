@@ -66,6 +66,7 @@
                 <li><a href="#" class="sidebar-link" data-page="kyc"><i class="fas fa-user-check"></i> KYC Codes</a></li>
                 <li><a href="#" class="sidebar-link" data-page="redeem"><i class="fas fa-gift"></i> Redeem Codes</a></li>
                 <li><a href="#" class="sidebar-link" data-page="settings"><i class="fas fa-cog"></i> Settings</a></li>
+                <li><a href="#" class="sidebar-link" data-page="maintenance"><i class="fas fa-server"></i> App Maintenance</a></li>
                 <li><a href="#" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
             </ul>
         </div>
@@ -91,21 +92,6 @@
             
             <div class="page" id="settings-content">
                 <div class="card">
-                    <h2>Service Status Control</h2>
-                    <div class="service-status-container">
-                        <div><h4>User App Services</h4><p>Enable/disable services for regular users.</p></div>
-                        <label class="switch"><input type="checkbox" id="user-service-status-toggle"><span class="slider"></span></label>
-                    </div>
-                    <div class="service-status-container">
-                        <div><h4>Merchant App Services</h4><p>Enable/disable services for merchants.</p></div>
-                        <label class="switch"><input type="checkbox" id="merchant-service-status-toggle"><span class="slider"></span></label>
-                    </div>
-                    <div class="service-status-container">
-                        <div><h4>Agent App Services</h4><p>Enable/disable services for agents.</p></div>
-                        <label class="switch"><input type="checkbox" id="agent-service-status-toggle"><span class="slider"></span></label>
-                    </div>
-                </div>
-                <div class="card">
                     <h2>Service Charges</h2>
                     <form id="fees-form">
                         <div class="form-group"><label>User - Send Money Fee ($)</label><input type="number" step="0.01" id="user-send-money-fee" class="form-control"></div>
@@ -117,6 +103,23 @@
                     </form>
                 </div>
             </div>
+            
+            <div class="page" id="maintenance-content">
+                <div class="card">
+                    <h2>App Maintenance Mode</h2>
+                    <p style="margin-bottom: 20px; color: var(--gray);">When enabled, all user, merchant, and agent apps will be temporarily disabled and show a maintenance screen.</p>
+                    <div class="service-status-container">
+                        <div>
+                            <h4>Activate Maintenance Mode</h4>
+                            <p>This will take all apps offline.</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="maintenance-mode-toggle">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
         </main>
     </div>
 
@@ -125,7 +128,6 @@
     <div class="modal" id="transactions-modal"><div class="modal-content"><div class="modal-header"><h3 id="transactions-modal-title">History</h3><span class="modal-close" onclick="closeModal('transactions-modal')">&times;</span></div><table id="user-transactions-table" style="max-height: 60vh; overflow-y: auto; display: block;"><thead><tr><th>Date</th><th>Type</th><th>Amount</th><th>Desc</th><th>ID</th></tr></thead><tbody id="user-transactions-tbody"></tbody></table></div></div>
 
     <script>
-    // --- Firebase Config: অনুগ্রহ করে এখানে আপনার নিজের কনফিগারেশন পেস্ট করুন ---
     const firebaseConfig = {
       apiKey: "AIzaSyAzU36v8dZ1jEMh1qxEAnNxDRAmoRCVbwY",
       authDomain: "wmt-services.firebaseapp.com",
@@ -141,7 +143,6 @@
 
     let allUsersCache = [];
 
-    // --- Auth State ---
     auth.onAuthStateChanged(async user => {
         const loginUI = document.getElementById('login-container');
         const panelUI = document.getElementById('admin-panel');
@@ -171,7 +172,6 @@
         }
     }
 
-    // --- Initialization ---
     function initializeAdminPanel() {
         setupEventListeners();
         loadDashboardData();
@@ -181,7 +181,6 @@
         loadSettings();
     }
 
-    // --- Event Listeners ---
     function setupEventListeners() {
         document.getElementById('login-form').addEventListener('submit', e => { e.preventDefault(); auth.signInWithEmailAndPassword(document.getElementById('login-email').value, document.getElementById('login-password').value).catch(err => alert(err.message)); });
         document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());
@@ -192,12 +191,9 @@
         document.getElementById('generate-kyc-code-btn').addEventListener('click', handleGenerateKyc);
         document.getElementById('redeem-code-form').addEventListener('submit', handleGenerateRedeem);
         document.getElementById('fees-form').addEventListener('submit', handleSaveFees);
-        document.getElementById('user-service-status-toggle').addEventListener('change', e => updateServiceStatus('userServicesEnabled', e.target.checked));
-        document.getElementById('merchant-service-status-toggle').addEventListener('change', e => updateServiceStatus('merchantServicesEnabled', e.target.checked));
-        document.getElementById('agent-service-status-toggle').addEventListener('change', e => updateServiceStatus('agentServicesEnabled', e.target.checked));
+        document.getElementById('maintenance-mode-toggle').addEventListener('change', e => updateMaintenanceStatus(e.target.checked));
     }
 
-    // --- Navigation ---
     function showPage(pageId) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.getElementById(`${pageId}-content`).classList.add('active');
@@ -205,7 +201,6 @@
         document.querySelector(`.sidebar-link[data-page="${pageId}"]`).classList.add('active');
     }
 
-    // --- Core Logic ---
     async function loadDashboardData() {
         const usersSnapshot = await db.collection('users').get();
         let counts = { users: 0, merchants: 0, agents: 0, kyc: 0 };
@@ -249,7 +244,6 @@
         });
     }
     
-    // --- Modal Logic ---
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
     window.onclick = e => { if (e.target.classList.contains('modal')) e.target.style.display = 'none'; };
@@ -303,13 +297,11 @@
         snapshot.forEach(doc => { const tx = doc.data(); tbody.innerHTML += `<tr><td>${tx.date.toDate().toLocaleDateString()}</td><td>${tx.type}</td><td>$${tx.amount.toFixed(2)}</td><td>${tx.description}</td><td>${tx.transactionId?.substring(0,8) || ''}...</td></tr>`; });
     }
 
-    // --- KYC & Redeem ---
     async function handleGenerateKyc() { const code = `WMTKYC-${Date.now().toString().slice(-6)}`; await db.collection('kyc_codes').add({ code, createdAt: firebase.firestore.FieldValue.serverTimestamp(), isUsed: false }); alert(`Generated: ${code}`); loadKycCodes(); }
     async function loadKycCodes() { const snap = await db.collection('kyc_codes').where('isUsed', '==', false).orderBy('createdAt', 'desc').get(); const tbody = document.querySelector('#kyc-codes-table tbody'); tbody.innerHTML = ''; snap.forEach(doc => { const d = doc.data(); tbody.innerHTML += `<tr><td>${d.code}</td><td>${d.createdAt.toDate().toLocaleDateString()}</td><td><button class="btn" onclick="db.collection('kyc_codes').doc('${doc.id}').delete().then(loadKycCodes)">Delete</button></td></tr>`; }); }
     async function handleGenerateRedeem(e) { e.preventDefault(); const form = e.target; await db.collection('redeem_codes').add({ code: `WMTR-${Date.now().toString().slice(-8)}`, amount: parseFloat(form.querySelector('#redeem-amount').value), password: form.querySelector('#redeem-password').value, expiryDate: firebase.firestore.Timestamp.fromDate(new Date(form.querySelector('#redeem-expiry').value)), isUsed: false }); alert('Redeem Code Generated'); loadRedeemCodes(); form.reset(); }
     async function loadRedeemCodes() { const snap = await db.collection('redeem_codes').orderBy('expiryDate', 'desc').get(); const tbody = document.querySelector('#redeem-codes-table tbody'); tbody.innerHTML = ''; snap.forEach(doc => { const d = doc.data(); tbody.innerHTML += `<tr><td>${d.code}</td><td>$${d.amount}</td><td>${d.password}</td><td>${d.expiryDate.toDate().toLocaleDateString()}</td><td>${d.isUsed ? 'Yes' : 'No'}</td><td><button class="btn" onclick="db.collection('redeem_codes').doc('${doc.id}').delete().then(loadRedeemCodes)">Delete</button></td></tr>`; }); }
 
-    // --- Settings ---
     async function loadSettings() {
         const feesDoc = await db.collection('settings').doc('fees').get();
         if (feesDoc.exists) {
@@ -319,9 +311,7 @@
         }
         const statusDoc = await db.collection('settings').doc('status').get();
         const status = statusDoc.exists() ? statusDoc.data() : {};
-        document.getElementById('user-service-status-toggle').checked = status.userServicesEnabled !== false;
-        document.getElementById('merchant-service-status-toggle').checked = status.merchantServicesEnabled !== false;
-        document.getElementById('agent-service-status-toggle').checked = status.agentServicesEnabled !== false;
+        document.getElementById('maintenance-mode-toggle').checked = status.isMaintenanceModeEnabled === true;
     }
 
     async function handleSaveFees(e) {
@@ -334,9 +324,9 @@
         alert('Fees Updated');
     }
 
-    async function updateServiceStatus(key, value) {
-        await db.collection('settings').doc('status').set({ [key]: value }, { merge: true });
-        alert(`${key.replace('ServicesEnabled', '')} services are now ${value ? 'ON' : 'OFF'}`);
+    async function updateMaintenanceStatus(value) {
+        await db.collection('settings').doc('status').set({ isMaintenanceModeEnabled: value }, { merge: true });
+        alert(`Maintenance mode is now ${value ? 'ON' : 'OFF'}. All apps will be affected.`);
     }
     
     </script>
