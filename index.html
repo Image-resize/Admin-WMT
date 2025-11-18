@@ -174,7 +174,7 @@
 
     function initializeAdminPanel() {
         setupEventListeners();
-        handleHashChange(); // UPDATE: Set page on initial load/refresh
+        handleHashChange(); 
         loadDashboardData();
         loadAllUsers();
         loadKycCodes();
@@ -185,7 +185,6 @@
     function setupEventListeners() {
         document.getElementById('login-form').addEventListener('submit', e => { e.preventDefault(); auth.signInWithEmailAndPassword(document.getElementById('login-email').value, document.getElementById('login-password').value).catch(err => alert(err.message)); });
         
-        // FIX: Prevent default link action for logout button
         document.getElementById('logout-btn').addEventListener('click', (e) => {
             e.preventDefault();
             auth.signOut();
@@ -194,12 +193,11 @@
         document.querySelectorAll('.sidebar-link').forEach(link => {
             if (link.id !== 'logout-btn') {
                 link.addEventListener('click', e => {
-                    // The href will change the hash, triggering the hashchange event
                 });
             }
         });
 
-        window.addEventListener('hashchange', handleHashChange); // UPDATE: Listen for hash changes
+        window.addEventListener('hashchange', handleHashChange); 
 
         document.getElementById('user-search').addEventListener('input', e => { const term = e.target.value.toLowerCase(); renderUsersTable(allUsersCache.filter(u => u.name.toLowerCase().includes(term) || u.email.toLowerCase().includes(term) || u.userId.toLowerCase().includes(term))); });
         document.getElementById('edit-user-form').addEventListener('submit', handleEditUser);
@@ -210,7 +208,6 @@
         document.getElementById('maintenance-mode-toggle').addEventListener('change', e => updateMaintenanceStatus(e.target.checked));
     }
 
-    // UPDATE: New function to handle showing pages based on URL hash
     function handleHashChange() {
         const pageId = window.location.hash.substring(1) || 'dashboard';
         showPage(pageId);
@@ -234,15 +231,28 @@
         const usersSnapshot = await db.collection('users').get();
         let counts = { users: 0, merchants: 0, agents: 0, kyc: 0 };
         let totalBalance = 0, totalCharges = 0;
-        const promises = usersSnapshot.docs.map(async doc => {
+        
+        // Use a for...of loop to handle async operations sequentially
+        for (const doc of usersSnapshot.docs) {
             const user = doc.data();
-            if (user.userType === 'merchant') counts.merchants++; else if (user.userType === 'agent') counts.agents++; else counts.users++;
+            if (user.userType === 'merchant') counts.merchants++;
+            else if (user.userType === 'agent') counts.agents++;
+            else counts.users++;
+            
             if (user.isKycVerified) counts.kyc++;
             totalBalance += user.balance || 0;
+
+            // Fetch transactions for each user
             const txSnapshot = await db.collection('users').doc(doc.id).collection('transactions').get();
-            txSnapshot.forEach(txDoc => { if (txDoc.data().description?.endsWith('Fee')) totalCharges += txDoc.data().amount || 0; });
-        });
-        await Promise.all(promises);
+            txSnapshot.forEach(txDoc => {
+                // *** FIX: Read the 'fee' field directly instead of checking the description ***
+                const txData = txDoc.data();
+                if (txData.fee && typeof txData.fee === 'number') {
+                    totalCharges += txData.fee;
+                }
+            });
+        }
+        
         document.getElementById('total-users').textContent = counts.users;
         document.getElementById('total-merchants').textContent = counts.merchants;
         document.getElementById('total-agents').textContent = counts.agents;
@@ -250,6 +260,7 @@
         document.getElementById('total-user-balance').textContent = `$${totalBalance.toFixed(2)}`;
         document.getElementById('total-service-charge').textContent = `$${totalCharges.toFixed(2)}`;
     }
+
 
     async function loadAllUsers() {
         const snapshot = await db.collection('users').orderBy('name').get();
