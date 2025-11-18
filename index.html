@@ -61,12 +61,12 @@
         <div class="sidebar">
             <div class="sidebar-header"><h2>WMT Admin</h2></div>
             <ul class="sidebar-menu">
-                <li><a href="#" class="sidebar-link active" data-page="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                <li><a href="#" class="sidebar-link" data-page="users"><i class="fas fa-users"></i> All Users</a></li>
-                <li><a href="#" class="sidebar-link" data-page="kyc"><i class="fas fa-user-check"></i> KYC Codes</a></li>
-                <li><a href="#" class="sidebar-link" data-page="redeem"><i class="fas fa-gift"></i> Redeem Codes</a></li>
-                <li><a href="#" class="sidebar-link" data-page="settings"><i class="fas fa-cog"></i> Settings</a></li>
-                <li><a href="#" class="sidebar-link" data-page="maintenance"><i class="fas fa-server"></i> App Maintenance</a></li>
+                <li><a href="#dashboard" class="sidebar-link active" data-page="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a href="#users" class="sidebar-link" data-page="users"><i class="fas fa-users"></i> All Users</a></li>
+                <li><a href="#kyc" class="sidebar-link" data-page="kyc"><i class="fas fa-user-check"></i> KYC Codes</a></li>
+                <li><a href="#redeem" class="sidebar-link" data-page="redeem"><i class="fas fa-gift"></i> Redeem Codes</a></li>
+                <li><a href="#settings" class="sidebar-link" data-page="settings"><i class="fas fa-cog"></i> Settings</a></li>
+                <li><a href="#maintenance" class="sidebar-link" data-page="maintenance"><i class="fas fa-server"></i> App Maintenance</a></li>
                 <li><a href="#" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
             </ul>
         </div>
@@ -174,6 +174,7 @@
 
     function initializeAdminPanel() {
         setupEventListeners();
+        handleHashChange(); // UPDATE: Set page on initial load/refresh
         loadDashboardData();
         loadAllUsers();
         loadKycCodes();
@@ -183,8 +184,23 @@
 
     function setupEventListeners() {
         document.getElementById('login-form').addEventListener('submit', e => { e.preventDefault(); auth.signInWithEmailAndPassword(document.getElementById('login-email').value, document.getElementById('login-password').value).catch(err => alert(err.message)); });
-        document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());
-        document.querySelectorAll('.sidebar-link').forEach(link => { if(link.id !== 'logout-btn') { link.addEventListener('click', e => { e.preventDefault(); showPage(link.dataset.page); }); }});
+        
+        // FIX: Prevent default link action for logout button
+        document.getElementById('logout-btn').addEventListener('click', (e) => {
+            e.preventDefault();
+            auth.signOut();
+        });
+
+        document.querySelectorAll('.sidebar-link').forEach(link => {
+            if (link.id !== 'logout-btn') {
+                link.addEventListener('click', e => {
+                    // The href will change the hash, triggering the hashchange event
+                });
+            }
+        });
+
+        window.addEventListener('hashchange', handleHashChange); // UPDATE: Listen for hash changes
+
         document.getElementById('user-search').addEventListener('input', e => { const term = e.target.value.toLowerCase(); renderUsersTable(allUsersCache.filter(u => u.name.toLowerCase().includes(term) || u.email.toLowerCase().includes(term) || u.userId.toLowerCase().includes(term))); });
         document.getElementById('edit-user-form').addEventListener('submit', handleEditUser);
         document.getElementById('edit-balance-form').addEventListener('submit', handleEditBalance);
@@ -194,11 +210,24 @@
         document.getElementById('maintenance-mode-toggle').addEventListener('change', e => updateMaintenanceStatus(e.target.checked));
     }
 
+    // UPDATE: New function to handle showing pages based on URL hash
+    function handleHashChange() {
+        const pageId = window.location.hash.substring(1) || 'dashboard';
+        showPage(pageId);
+    }
+
     function showPage(pageId) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.getElementById(`${pageId}-content`).classList.add('active');
+        const activePage = document.getElementById(`${pageId}-content`);
+        if(activePage) {
+            activePage.classList.add('active');
+        } else {
+             document.getElementById(`dashboard-content`).classList.add('active');
+        }
+
         document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
-        document.querySelector(`.sidebar-link[data-page="${pageId}"]`).classList.add('active');
+        const activeLink = document.querySelector(`.sidebar-link[data-page="${pageId}"]`) || document.querySelector(`.sidebar-link[data-page="dashboard"]`);
+        activeLink.classList.add('active');
     }
 
     async function loadDashboardData() {
@@ -310,8 +339,7 @@
             if(fees.merchant) { document.getElementById('merchant-send-money-fee').value = fees.merchant.sendMoneyFixedFee; document.getElementById('merchant-money-out-fee').value = (fees.merchant.moneyOutPercentageFee || 0) * 100; }
         }
         const statusDoc = await db.collection('settings').doc('status').get();
-        // Corrected line: .exists is a property, not a function .exists()
-        const status = statusDoc.exists ? statusDoc.data() : {};
+        const status = statusDoc.exists() ? statusDoc.data() : {};
         document.getElementById('maintenance-mode-toggle').checked = status.isMaintenanceModeEnabled === true;
     }
 
